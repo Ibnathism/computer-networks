@@ -9,11 +9,8 @@ public class Server {
         try {
             ServerSocket serverConnect = new ServerSocket(PORT);
             System.out.println("Server started.\nListening for connections on port : " + PORT + " ...\n");
-
-
             //String fileData = readFileData(file, Math.toIntExact(file.length()));
             //System.out.println(fileData);
-
             while(true)
             {
                 Socket s = serverConnect.accept();

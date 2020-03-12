@@ -2,14 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1dadfb2f-a9f4-4eb9-8f6b-2a140e0d22ba" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/FileManger.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/ServerThread.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/Application-Layer/Server/HTTPServerSkeleton.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Server/HTTPServerSkeleton.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Server.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Application-Layer/FileManger.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Application-Layer/FileManger.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Application-Layer/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Application-Layer/Server.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Application-Layer/ServerThread.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Application-Layer/ServerThread.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/FileManger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/FileManger.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Server.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ServerThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ServerThread.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -28,12 +27,16 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="ProjectId" id="1Ywtiu6CtbYxN30AXrWUMgOfaTV" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/src" />
+    <property name="nodejs_package_manager_path" value="npm" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -56,6 +59,13 @@
     </option>
   </component>
   <component name="RunManager" selected="Application.Server">
+    <configuration name="FileManger" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="FileManger" />
+      <module name="Application-Layer" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="Main" type="Application" factoryName="Application" temporary="true">
       <option name="MAIN_CLASS_NAME" value="com.company.Main" />
       <module name="Application-Layer" />
@@ -82,10 +92,12 @@
     <list>
       <item itemvalue="Application.Server" />
       <item itemvalue="Application.Main" />
+      <item itemvalue="Application.FileManger" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Application.Server" />
+        <item itemvalue="Application.FileManger" />
       </list>
     </recent_temporary>
   </component>
@@ -100,7 +112,9 @@
       <option name="presentableId" value="Default" />
       <updated>1583865615278</updated>
       <workItem from="1583865619811" duration="10988000" />
-      <workItem from="1583953921454" duration="2575000" />
+      <workItem from="1583953921454" duration="23678000" />
+      <workItem from="1584009147180" duration="914000" />
+      <workItem from="1584018555425" duration="6342000" />
     </task>
     <servers />
   </component>
@@ -119,5 +133,24 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/FileManger.java</url>
+          <line>30</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/Server.java</url>
+          <line>15</line>
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
