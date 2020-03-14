@@ -13,12 +13,6 @@ public class FileManger {
                 sb.append( line );
                 sb.append( '\n' );
             }
-            //FileManger.listf("root", sb);
-
-
-            /*for (File f: files){
-                sb.append("<b><a href=\""+f.getName()+"\">"+f.getName()+"</a></b><br>");
-            }*/
             return sb;
         } catch (Exception e){
             e.printStackTrace();
@@ -53,51 +47,8 @@ public class FileManger {
                 stringBuilder.append("<a href=\"" + path + "/" + file.getName() + "\">" + file.getName() + "</a><br>");
             }
         }
-        /*try {
-            File directory = new File(directoryName);
-            File[] files = directory.listFiles();
-
-            if(files != null)
-                for (File file : files) {
-                    if (file.isFile()) {
-                        //System.out.println(file.getName());
-                        stringBuilder.append("<b><a href=\""+file.getName()+"\">"+file.getName()+"</a></b><br>");
-                    } else if (file.isDirectory()) {
-                        //System.out.println(file.getName() + " is a dir");
-                        stringBuilder.append("<b><a href=\""+path+file.getName()+"\">"+file.getName()+"</a></b><br>");
-                    }
-                }
-
-            *//*for (File f: files){
-                sb.append("<b><a href=\""+f.getName()+"\">"+f.getName()+"</a></b><br>");
-            }*//*
-            return stringBuilder;
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        return null;
-*/
         return stringBuilder;
     }
-
-
-
-
-    /*public static StringBuilder listf(String directoryName, StringBuilder stringBuilder) {
-        File directory = new File(directoryName);
-        File[] fList = directory.listFiles();
-        if(fList != null)
-            for (File file : fList) {
-                if (file.isFile()) {
-                    //System.out.println(file.getName());
-                    stringBuilder.append("<b><a href=\""+file.getName()+"\">"+file.getName()+"</a></b><br>");
-                } else if (file.isDirectory()) {
-                    //System.out.println(file.getName() + " is a dir");
-                    stringBuilder.append("<b><a href=\""+file.getName()+"\">"+file.getName()+"</a></b><br>");
-                }
-            }
-        return stringBuilder;
-    }*/
 
 /*
     public static void main(String[] args) {
