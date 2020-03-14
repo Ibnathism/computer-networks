@@ -1,12 +1,13 @@
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
-public class FileManger {
+class FileManger {
     private boolean type;   // type = 0 when file, type = 1 when dir
-    public static StringBuilder openFile() {
+    static StringBuilder openFile() {
         try {
             File file = new File("index.html");
             FileInputStream fis = new FileInputStream(file);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder();
             String line;
             while(( line = br.readLine()) != null ) {
@@ -21,13 +22,10 @@ public class FileManger {
 
     }
 
-    public static StringBuilder viewDirectory(StringBuilder stringBuilder, String path) {
-        //path = "E:\\Workspaces\\IntelliJ\\Computer-Networks\\Application-Layer" + path;
+    static void viewDirectory(StringBuilder stringBuilder, String path) {
         File[] files = new File(path).listFiles();
         if (path.equals("/")) {
             path = "";
-            //stringBuilder.append("<b><a href=\"localhost:6789/root/\">" + "root" + "</a></b><br>");
-            //return stringBuilder;
         }
         else{
             String[] allPaths = path.split("/");
@@ -35,19 +33,15 @@ public class FileManger {
             path=allPaths[len-1];
         }
 
-        //String[] dirs = path.split("/");
-        //String directoryName = dirs[dirs.length-1];
+        assert files != null;
         for (File file : files) {
             if(file.isDirectory()) {
-                //System.out.println(file.getName()+" path : "+path);
-                stringBuilder.append("<b><a href=\"" + path + "/" + file.getName() + "\">" + file.getName() + "</a></b><br>");
+                stringBuilder.append("<b><a href=\"").append(path).append("/").append(file.getName()).append("\">").append(file.getName()).append("</a></b><br>");
 
             }else{
-                //System.out.println(file.getName());
-                stringBuilder.append("<a href=\"" + path + "/" + file.getName() + "\">" + file.getName() + "</a><br>");
+                stringBuilder.append("<a href=\"").append(path).append("/").append(file.getName()).append("\">").append(file.getName()).append("</a><br>");
             }
         }
-        return stringBuilder;
     }
 
 /*

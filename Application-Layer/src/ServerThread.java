@@ -1,25 +1,24 @@
-import javax.xml.crypto.Data;
 import java.io.*;
 import java.net.Socket;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 public class ServerThread implements Runnable{
-    private static final int PACKET_SIZE = 100;
+    private static final int PACKET_SIZE = 1024;
     private Socket socket;
-    private Thread thread;
 
 
-    public ServerThread(Socket s) {
+    ServerThread(Socket s) {
         this.socket = s;
-        thread = new Thread(this);
+        Thread thread = new Thread(this);
         thread.start();
     }
 
     @Override
     public void run() {
-
         try {
             StringBuilder content = FileManger.openFile();
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -33,14 +32,52 @@ public class ServerThread implements Runnable{
                         String[] commands = input.split(" ", 3);
                         this.executeGetRequest(commands, dataOutputStream, content);
                     }
+                    else if (input.startsWith("UPLOAD"))
+                    {
+
+                        String[] commands = input.split(" ");
+                        this.executeUploadRequest(commands, in);
+                    }
                 }
             }
             socket.close();
+            in.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    private void executeUploadRequest(String[] commands, BufferedReader bufferedReader) {
+
+        try {
+            FileOutputStream  fileOutputStream = new FileOutputStream("root/"+commands[1]);
+            int n = 10;
+            List<String> lines;
+            do {
+               lines = readNLines(bufferedReader, n, fileOutputStream);
+            } while (!lines.isEmpty());
+            fileOutputStream.flush();
+            fileOutputStream.close();
+        } catch (IOException e){
+            System.out.println("I/O Exception here in executeupload request " + e);
+        }
+    }
+
+    private List<String> readNLines(BufferedReader br, int n, FileOutputStream fileOutputStream) {
+        List<String> lines = new ArrayList<>(n);
+        String line;
+        while (true) {
+            try {
+                if (!(lines.size() < n && ((line = br.readLine()) != null))) break;
+                lines.add(line);
+                fileOutputStream.write(line.getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+        return lines;
+    }
 
 
     private void executeGetRequest(String[] commands, DataOutputStream dataOutputStream, StringBuilder content){
@@ -62,13 +99,10 @@ public class ServerThread implements Runnable{
 
     private void generateErrorMsg(StringBuilder content, DataOutputStream dataOutputStream) {
         try {
-            dataOutputStream.writeBytes("HTTP/1.1 404 NOT FOUND\r\n");
-            dataOutputStream.writeBytes("Server: Java HTTP Server: 1.0\r\n");
-            dataOutputStream.writeBytes("Date: " + new Date() + "\r\n");
-            dataOutputStream.writeBytes("Content-Type: text/html\r\n");
-            dataOutputStream.writeBytes("Content-Length: " + content.length() + "\r\n");
-            dataOutputStream.writeBytes("\r\n");
-            //System.out.println(path);
+            StringBuilder header = new StringBuilder();
+            header.append("HTTP/1.1 404 NOT FOUND\r\n").append("Server: Java HTTP Server: 1.0\r\n").append("Date: ").append(new Date())
+                    .append("\r\n").append("Content-Type: text/html\r\n").append("Content-Length: ").append(content.length()).append("\r\n").append("\r\n");
+            dataOutputStream.writeBytes(header.toString());
             dataOutputStream.flush();
         } catch (IOException e){
             System.out.println("I/O Exception "+e);
@@ -80,13 +114,10 @@ public class ServerThread implements Runnable{
         try {
             //System.out.println("dir");
             FileManger.viewDirectory(content, commands[1]);
-            dataOutputStream.writeBytes("HTTP/1.1 200 OK\r\n");
-            dataOutputStream.writeBytes("Server: Java HTTP Server: 1.0\r\n");
-            dataOutputStream.writeBytes("Date: " + new Date() + "\r\n");
-            dataOutputStream.writeBytes("Content-Type: text/html\r\n");
-            dataOutputStream.writeBytes("Content-Length: " + content.length() + "\r\n");
-            dataOutputStream.writeBytes("\r\n");
-            //System.out.println(path);
+            StringBuilder header = new StringBuilder();
+            header.append("HTTP/1.1 200 OK\r\n").append("Server: Java HTTP Server: 1.0\r\n").append("Date: " + new Date() + "\r\n")
+                    .append("Content-Type: text/html\r\n").append("Content-Length: " + content.length() + "\r\n").append("\r\n");
+            dataOutputStream.writeBytes(header.toString());
             dataOutputStream.writeBytes(content.toString());
             dataOutputStream.flush();
         } catch (IOException e)
@@ -98,24 +129,13 @@ public class ServerThread implements Runnable{
 
     private void downloadFile(DataOutputStream dataOutputStream, File requestedFile){
         try {
-            //System.out.println("file");
-            System.out.println("filename : "+requestedFile.getName());
-            dataOutputStream.writeBytes("HTTP/1.1 200 OK\r\n");
-            //System.out.println("HTTP/1.1 200 OK\r\n");
-            dataOutputStream.writeBytes("Server: Java HTTP Server: 1.0\r\n");
-            //System.out.println("Server: Java HTTP Server: 1.0\r\n");
-            dataOutputStream.writeBytes("Date: "+new Date()+"\r\n");
-            //System.out.println("Date: "+new Date()+"\r\n");
-            dataOutputStream.writeBytes("Content-Type: "+ URLConnection.guessContentTypeFromName(requestedFile.getName())+"\r\n");
-            //System.out.println("Content-Type: "+ URLConnection.guessContentTypeFromName(requestedFile.getName())+"\r\n");
-            dataOutputStream.writeBytes("Content-Length: "+requestedFile.length()+"\r\n");
-            //System.out.println("Content-Length: "+requestedFile.length()+"\r\n");
-            dataOutputStream.writeBytes("Content-Disposition: attachment; filename=\""+requestedFile.getName()+"\"\r\n");
-            dataOutputStream.writeBytes("Connection: close\r\n");
-            dataOutputStream.writeBytes("\r\n");
-            //System.out.println("Content-Disposition: attachment; filename=\""+requestedFile.getName()+"\"\r\n");
-            //dataOutputStream.writeBytes(content.toString());
-            //System.out.println(content.toString());
+            StringBuilder header = new StringBuilder();
+            //System.out.println("filename : "+requestedFile.getName());
+            header.append("HTTP/1.1 200 OK\r\n").append("Server: Java HTTP Server: 1.0\r\n").append("Date: ").append(new Date())
+                    .append("\r\n").append("Content-Type: ").append(URLConnection.guessContentTypeFromName(requestedFile.getName())).append("\r\n")
+                    .append("Content-Length: "+requestedFile.length()+"\r\n").append("Content-Disposition: attachment; filename=\""+requestedFile.getName()+"\"\r\n")
+                    .append("Connection: close\r\n").append("\r\n");
+            dataOutputStream.writeBytes(header.toString());
         } catch (IOException e){
             System.out.println("I/O exception found "+ e);
         }
@@ -132,21 +152,13 @@ public class ServerThread implements Runnable{
                 } else {
                     dataOutputStream.flush();
                     dataOutputStream.close();
-                    //in.close();
                     break;
                 }
             }
-
             dataOutputStream.close();
-            //in.close();
 
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //dataOutputStream.flush();
-
     }
-
-
-
 }

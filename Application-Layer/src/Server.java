@@ -3,23 +3,21 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server {
-    static final int PORT = 6789;
+    private static final int PORT = 6789;
 
-    public Server() {
+    private Server() {
         try {
             ServerSocket serverConnect = new ServerSocket(PORT);
             System.out.println("Server started.\nListening for connections on port : " + PORT + " ...\n");
-            //String fileData = readFileData(file, Math.toIntExact(file.length()));
-            //System.out.println(fileData);
             while(true)
             {
                 Socket s = serverConnect.accept();
-                ServerThread serverThread = new ServerThread(s);
+                new ServerThread(s);
+                //new ServerUploadThread(s);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
 
@@ -40,9 +38,7 @@ public class Server {
     }
 
     public static void main(String[] args) {
-
         new Server();
-
     }
 
 }
