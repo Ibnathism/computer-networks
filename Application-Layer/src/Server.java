@@ -15,12 +15,8 @@ public class Server {
             {
                 Socket s = serverConnect.accept();
                 ServerThread serverThread = new ServerThread(s);
-                Thread thread = new Thread(serverThread);
-                thread.start();
-                thread.join();
-                s.close();
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 

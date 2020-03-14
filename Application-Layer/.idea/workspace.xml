@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1dadfb2f-a9f4-4eb9-8f6b-2a140e0d22ba" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/root/dir1/dir2/dir3/VindeshiTara.mp3" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/Application-Layer/FileManger.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Application-Layer/FileManger.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/Application-Layer/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Application-Layer/Server.class" afterDir="false" />
@@ -19,6 +21,7 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Enum" />
         <option value="Class" />
       </list>
     </option>
@@ -114,7 +117,10 @@
       <workItem from="1583865619811" duration="10988000" />
       <workItem from="1583953921454" duration="23678000" />
       <workItem from="1584009147180" duration="914000" />
-      <workItem from="1584018555425" duration="6342000" />
+      <workItem from="1584018555425" duration="8783000" />
+      <workItem from="1584083481997" duration="13487000" />
+      <workItem from="1584175346091" duration="446000" />
+      <workItem from="1584176198717" duration="1006000" />
     </task>
     <servers />
   </component>
@@ -136,21 +142,5 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/FileManger.java</url>
-          <line>30</line>
-          <option name="timeStamp" value="8" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/Server.java</url>
-          <line>15</line>
-          <option name="timeStamp" value="9" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

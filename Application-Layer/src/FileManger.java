@@ -1,6 +1,7 @@
 import java.io.*;
 
 public class FileManger {
+    private boolean type;   // type = 0 when file, type = 1 when dir
     public static StringBuilder openFile() {
         try {
             File file = new File("index.html");
@@ -46,6 +47,7 @@ public class FileManger {
             if(file.isDirectory()) {
                 //System.out.println(file.getName()+" path : "+path);
                 stringBuilder.append("<b><a href=\"" + path + "/" + file.getName() + "\">" + file.getName() + "</a></b><br>");
+
             }else{
                 //System.out.println(file.getName());
                 stringBuilder.append("<a href=\"" + path + "/" + file.getName() + "\">" + file.getName() + "</a><br>");
