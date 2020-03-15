@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.Socket;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -9,10 +10,18 @@ import java.util.List;
 public class ServerThread implements Runnable{
     private static final int PACKET_SIZE = 1024;
     private Socket socket;
+    private FileWriter log;
+    //private BufferedWriter log;
 
 
     ServerThread(Socket s) {
         this.socket = s;
+        try {
+            log = new FileWriter("log.txt", true);
+            //log = new BufferedWriter(writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         Thread thread = new Thread(this);
         thread.start();
     }
@@ -20,12 +29,14 @@ public class ServerThread implements Runnable{
     @Override
     public void run() {
         try {
-            StringBuilder content = FileManger.openFile();
+            StringBuilder content = FileManger.openFile("index.html");
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
             String input = in.readLine();
+            System.out.println(input);
             if(input != null) {
                 System.out.println(input);
+                log.write("\n"+input);
                 if(input.length() > 0) {
                     if(input.startsWith("GET"))
                     {
@@ -36,15 +47,22 @@ public class ServerThread implements Runnable{
                     {
 
                         String[] commands = input.split(" ");
+                        File dummy = new File(commands[1]);
+                        if (!dummy.exists()) System.out.println("File doesn't exist");
                         this.executeUploadRequest(commands, in);
                     }
                 }
             }
+            else {
+                System.out.println("Not Found");
+            }
             socket.close();
             in.close();
+            log.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            if (e.toString().equals("java.net.SocketException: Connection reset")) System.out.println("Not Found");
         }
+
     }
 
     private void executeUploadRequest(String[] commands, BufferedReader bufferedReader) {
@@ -56,10 +74,11 @@ public class ServerThread implements Runnable{
             do {
                lines = readNLines(bufferedReader, n, fileOutputStream);
             } while (!lines.isEmpty());
+            log.write("\nUpload Request Successfully Executed\n");
             fileOutputStream.flush();
             fileOutputStream.close();
         } catch (IOException e){
-            System.out.println("I/O Exception here in executeupload request " + e);
+            System.out.println("I/O Exception here in upload request " + e);
         }
     }
 
@@ -88,7 +107,8 @@ public class ServerThread implements Runnable{
                 else this.showFilesOfDirectory(content, commands, dataOutputStream);
             }
             else {
-                this.generateErrorMsg(content, dataOutputStream);
+                //System.out.println("Doesn't exist");
+                this.generateErrorMsg(dataOutputStream);
             }
         } catch (Exception e){
             System.out.println("Exception " + e);
@@ -97,12 +117,20 @@ public class ServerThread implements Runnable{
 
     }
 
-    private void generateErrorMsg(StringBuilder content, DataOutputStream dataOutputStream) {
+    private void generateErrorMsg(DataOutputStream dataOutputStream) {
         try {
+            System.out.println("ERROR 404 NOT FOUND");
+            StringBuilder content = FileManger.openFile("error.html");
+            //byte[] array = Files.readAllBytes(error.toPath());
             StringBuilder header = new StringBuilder();
-            header.append("HTTP/1.1 404 NOT FOUND\r\n").append("Server: Java HTTP Server: 1.0\r\n").append("Date: ").append(new Date())
-                    .append("\r\n").append("Content-Type: text/html\r\n").append("Content-Length: ").append(content.length()).append("\r\n").append("\r\n");
+            header.append("HTTP/1.1 404 NOTFOUND\r\n").append("Server: Java HTTP Server: 1.0\r\n").append("Date: ").append(new Date())
+                    .append("\r\n").append("Content-Type: text/html\r\n").append("Content-Length: ").append(content.length()).append("\r\n")
+                    .append("Connection: close\r\n").append("\r\n");
+
+            log.write(header.toString());
             dataOutputStream.writeBytes(header.toString());
+            //dataOutputStream.writeBytes(array.toString());
+            dataOutputStream.writeBytes(content.toString());
             dataOutputStream.flush();
         } catch (IOException e){
             System.out.println("I/O Exception "+e);
@@ -116,7 +144,8 @@ public class ServerThread implements Runnable{
             FileManger.viewDirectory(content, commands[1]);
             StringBuilder header = new StringBuilder();
             header.append("HTTP/1.1 200 OK\r\n").append("Server: Java HTTP Server: 1.0\r\n").append("Date: " + new Date() + "\r\n")
-                    .append("Content-Type: text/html\r\n").append("Content-Length: " + content.length() + "\r\n").append("\r\n");
+                    .append("Content-Type: text/html\r\n").append("Content-Length: " + content.length() + "\r\n").append("Connection: close\r\n").append("\r\n");
+            log.write(header.toString());
             dataOutputStream.writeBytes(header.toString());
             dataOutputStream.writeBytes(content.toString());
             dataOutputStream.flush();
@@ -135,6 +164,7 @@ public class ServerThread implements Runnable{
                     .append("\r\n").append("Content-Type: ").append(URLConnection.guessContentTypeFromName(requestedFile.getName())).append("\r\n")
                     .append("Content-Length: "+requestedFile.length()+"\r\n").append("Content-Disposition: attachment; filename=\""+requestedFile.getName()+"\"\r\n")
                     .append("Connection: close\r\n").append("\r\n");
+            log.write(header.toString());
             dataOutputStream.writeBytes(header.toString());
         } catch (IOException e){
             System.out.println("I/O exception found "+ e);

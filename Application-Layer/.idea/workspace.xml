@@ -2,18 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1dadfb2f-a9f4-4eb9-8f6b-2a140e0d22ba" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/dsf.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/root/dsf.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Client.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/ClientThread.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/ServerUploadThread.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/error.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/log.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/root/log.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Application-Layer/ClientThread.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Application-Layer/ClientThread.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/Application-Layer/FileManger.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Application-Layer/FileManger.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/Application-Layer/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Application-Layer/Server.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/Application-Layer/ServerThread.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Application-Layer/ServerThread.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/root/dir1/dir2/dir3/file3.txt" beforeDir="false" afterPath="$PROJECT_DIR$/root/dir1/dir2/dir3/file3.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Application-Layer/ServerUploadThread.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/root/dsf.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/root/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ClientThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ClientThread.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/FileManger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/FileManger.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Server.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ServerThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ServerThread.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -65,7 +65,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.Client">
+  <component name="RunManager" selected="Application.Server">
     <configuration name="Client" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Client" />
       <module name="Application-Layer" />
@@ -133,7 +133,7 @@
       <workItem from="1584018555425" duration="8783000" />
       <workItem from="1584083481997" duration="13487000" />
       <workItem from="1584175346091" duration="446000" />
-      <workItem from="1584176198717" duration="24357000" />
+      <workItem from="1584176198717" duration="29316000" />
     </task>
     <servers />
   </component>

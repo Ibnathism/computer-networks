@@ -13,29 +13,33 @@ public class ClientThread implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Enter Full Path of the File you want to upload: ");
+        System.out.println("Enter Name of the File you want to upload: ");
         Scanner scanner = new Scanner(System.in);
         String input = scanner.nextLine();
+
         File file = new File(input);
-        String request = "UPLOAD "+input+"\n";
+
         try {
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            if (file.exists()){
-                //System.out.println("File found "+ file.getName());
+            //System.out.println("File found "+ file.getName());
+            if (file.exists()) {
+                String request = "UPLOAD " + input + "\n";
                 dataOutputStream.writeBytes(request);
                 dataOutputStream.flush();
+
                 uploadFile(dataOutputStream, file);
                 socket.close();
-            }
-            else {
+            } else {
                 System.out.println("File not found");
+                //dataOutputStream.writeBytes("Not Found");
+                //dataOutputStream.flush();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e);
         }
-
-
     }
+
+
 
     private void uploadFile(DataOutputStream dataOutputStream, File file){
 

@@ -3,9 +3,9 @@ import java.nio.charset.StandardCharsets;
 
 class FileManger {
     private boolean type;   // type = 0 when file, type = 1 when dir
-    static StringBuilder openFile() {
+    static StringBuilder openFile(String filename) {
         try {
-            File file = new File("index.html");
+            File file = new File(filename);
             FileInputStream fis = new FileInputStream(file);
             BufferedReader br = new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder();
