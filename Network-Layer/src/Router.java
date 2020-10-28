@@ -102,7 +102,7 @@ public class Router {
      * Delete all the routingTableEntry
      */
     public void clearRoutingTable() {
-
+        routingTable.clear();
     }
 
     /**
@@ -110,8 +110,29 @@ public class Router {
      * @param neighbor
      */
     public boolean updateRoutingTable(Router neighbor) {
+        boolean isChanged = false;
+        double baseDistance = this.getRTEntry(neighbor.getRouterId()).getDistance();
+        for (int i = 0; i < this.routingTable.size(); i++) {
+            RoutingTableEntry entry = this.routingTable.get(i);
+            RoutingTableEntry neighbourEntry = neighbor.getRTEntry(entry.getRouterId());
+            if (this.routerId == entry.getRouterId()) continue;
+            double distPrev = entry.getDistance();
+            double distNew = baseDistance + neighbourEntry.getDistance();
+            if (distPrev>distNew) {
+                entry.setDistance(distNew);
+                entry.setGatewayRouterId(neighbor.routerId);
+                isChanged = true;
+            }
 
-        return false;
+        }
+        return isChanged;
+    }
+
+    public RoutingTableEntry getRTEntry(int routerId) {
+        for (RoutingTableEntry entry: this.routingTable) {
+            if (entry.getRouterId()==routerId) return entry;
+        }
+        return null;
     }
 
     public boolean sfupdateRoutingTable(Router neighbor) {
