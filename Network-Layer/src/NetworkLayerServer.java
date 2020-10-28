@@ -1,5 +1,3 @@
-import sun.nio.cs.ext.MacArabic;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -80,7 +78,7 @@ public class NetworkLayerServer {
                 1. T <- getRoutingTable of the router r
                 2. N <- find routers which are the active neighbors of the current router r
                 3. Update routingTable of each router t in N using the
-                   routing table of r [Hint: Use t.updateRoutingTable(r)]
+                   routing table of r [Hint: Use t.updateRoutingTable(r)] => neighbor.update(parent)
             }
         }
         */

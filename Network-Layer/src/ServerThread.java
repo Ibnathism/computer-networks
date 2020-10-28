@@ -1,8 +1,3 @@
-
-
-import java.util.ArrayList;
-import java.util.Random;
-
 public class ServerThread implements Runnable {
 
     NetworkUtility networkUtility;
@@ -61,7 +56,7 @@ public class ServerThread implements Runnable {
         4. If 3(a) occurs at any stage, packet will be dropped,
             otherwise successfully sent to the destination router
         */
-
+    return false;
     }
 
     @Override

@@ -1,6 +1,6 @@
 //Work needed
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -55,10 +55,14 @@ public class Router {
         for (int i = 0; i < numberOfInterfaces; i++) {
             string += interfaceAddresses.get(i).getString() + "\t";
         }
-        string += "\n" + "Neighbors: \n";
+        string += "\n" + "Neighbor Router IDs: \n";
         for(int i = 0; i < neighborRouterIDs.size(); i++) {
             string += neighborRouterIDs.get(i) + "\t";
         }
+        /*string += "\n" + "GatewayIDtoIp Map:";
+        for(Map.Entry<Integer, IPAddress> item: gatewayIDtoIP.entrySet()) {
+            string += "\n" + item.getKey() + " -> " +item.getValue();
+        }*/
         return string;
     }
 
@@ -69,8 +73,29 @@ public class Router {
      * for itself, distance=0; for any connected router with state=true, distance=1; otherwise distance=Constants.INFTY;
      */
     public void initiateRoutingTable() {
+        for (Router router: NetworkLayerServer.routers) {
+            double distance;
+            int gatewayID;
+            if(router.routerId == this.routerId) {
+                distance = 0;
+                gatewayID = router.routerId;
+            }
+            else if(this.neighborRouterIDs.contains(router.routerId) && router.state) {
+                distance = 1;
+                gatewayID = router.routerId;
+            }
+            else {
+                distance = Constants.INFINITY;
+                gatewayID = -1;
+            }
+            RoutingTableEntry entry = new RoutingTableEntry(router.routerId, distance, gatewayID);
+            routingTable.add(entry);
+        }
+        /*System.out.println("Router: "+this.routerId);
+        for(RoutingTableEntry entry: routingTable) {
+            System.out.println("   "+entry.getRouterId()+"  "+entry.getDistance()+"    "+entry.getGatewayRouterId());
+        }*/
 
-        
     }
 
     /**
@@ -85,11 +110,12 @@ public class Router {
      * @param neighbor
      */
     public boolean updateRoutingTable(Router neighbor) {
-        
+
+        return false;
     }
 
     public boolean sfupdateRoutingTable(Router neighbor) {
-        
+        return false;
     }
 
     /**
