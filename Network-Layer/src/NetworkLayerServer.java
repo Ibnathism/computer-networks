@@ -84,9 +84,29 @@ public class NetworkLayerServer {
         */
     }
 
+    public static boolean update(Router router){
+        boolean temp = false;
+        for (int neighborId: router.getNeighborRouterIDs()) {
+            Router neighborRouter = routerMap.get(neighborId);
+            if (neighborRouter.getState()) {
+                temp = temp | neighborRouter.updateRoutingTable(router);
+            }
+        }
+        return temp;
+    }
+
     public static synchronized void simpleDVR(int startingRouterId) {
+        boolean isConvergence = false;
+        Router startingRouter = routerMap.get(startingRouterId);
 
+        while (!isConvergence) {
+            boolean isUpdate = update(startingRouter);
 
+            for (Router router: routers) {
+                isUpdate = isUpdate | update(router);
+            }
+            isConvergence = !isUpdate;
+        }
     }
 
     public static EndDevice getClientDeviceSetup() {

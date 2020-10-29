@@ -112,13 +112,12 @@ public class Router {
     public boolean updateRoutingTable(Router neighbor) {
         boolean isChanged = false;
         double baseDistance = this.getRTEntry(neighbor.getRouterId()).getDistance();
-        for (int i = 0; i < this.routingTable.size(); i++) {
-            RoutingTableEntry entry = this.routingTable.get(i);
+        for (RoutingTableEntry entry : this.routingTable) {
             RoutingTableEntry neighbourEntry = neighbor.getRTEntry(entry.getRouterId());
             if (this.routerId == entry.getRouterId()) continue;
             double distPrev = entry.getDistance();
             double distNew = baseDistance + neighbourEntry.getDistance();
-            if (distPrev>distNew) {
+            if (distPrev > distNew) {
                 entry.setDistance(distNew);
                 entry.setGatewayRouterId(neighbor.routerId);
                 isChanged = true;
