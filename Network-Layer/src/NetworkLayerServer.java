@@ -35,18 +35,18 @@ public class NetworkLayerServer {
         System.out.println("Creating router topology");
 
         readTopology();
-        printRouters();
+        //printRouters();
 
         initRoutingTables(); //Initialize routing tables for all routers
 
         //DVR(1); //Update routing table using distance vector routing until convergence
         simpleDVR(1);
-        stateChanger = new RouterStateChanger();//Starts a new thread which turns on/off routers randomly depending on parameter Constants.LAMBDA
+        //stateChanger = new RouterStateChanger();//Starts a new thread which turns on/off routers randomly depending on parameter Constants.LAMBDA
 
         while(true) {
             try {
                 Socket socket = serverSocket.accept();
-                System.out.println("Client" + (clientCount + 1) + " attempted to connect");
+                System.out.println("Client" + clientCount + " attempted to connect");
                 EndDevice endDevice = getClientDeviceSetup();
                 clientCount++;
                 endDevices.add(endDevice);
@@ -113,9 +113,20 @@ public class NetworkLayerServer {
         Random random = new Random(System.currentTimeMillis());
         int r = Math.abs(random.nextInt(clientInterfaces.size()));
 
-        System.out.println("Size: " + clientInterfaces.size() + "\n" + r);
+        //System.out.println("Size: " + clientInterfaces.size() + "\n" + r);
 
-        IPAddress ip = null;
+        Map.Entry<IPAddress, Integer> entry = (Map.Entry<IPAddress, Integer>) clientInterfaces.entrySet().toArray()[r];
+
+        IPAddress gateway = entry.getKey();
+        Integer value = entry.getValue();
+
+        int deviceID = clientCount;
+        IPAddress ip = new IPAddress(gateway.getBytes()[0] + "." + gateway.getBytes()[1] + "." + gateway.getBytes()[2] + "." + (value+2));
+        value++;
+        clientInterfaces.put(gateway, value);
+        deviceIDtoRouterID.put(endDevices.size(), interfacetoRouterID.get(gateway));
+
+        /*IPAddress ip = null;
         IPAddress gateway = null;
 
         int i = 0;
@@ -131,9 +142,9 @@ public class NetworkLayerServer {
                 break;
             }
             i++;
-        }
+        }*/
 
-        EndDevice device = new EndDevice(ip, gateway, endDevices.size());
+        EndDevice device = new EndDevice(ip, gateway, clientCount);
 
         System.out.println("Device : " + ip + "::::" + gateway);
         return device;

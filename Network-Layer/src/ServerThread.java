@@ -6,7 +6,7 @@ public class ServerThread implements Runnable {
     ServerThread(NetworkUtility networkUtility, EndDevice endDevice) {
         this.networkUtility = networkUtility;
         this.endDevice = endDevice;
-        System.out.println("Server Ready for client " + NetworkLayerServer.clientCount);
+        System.out.println("Server Ready for client " + endDevice.getIpAddress());
         //NetworkLayerServer.clientCount++;
         new Thread(this).start();
     }
@@ -30,6 +30,14 @@ public class ServerThread implements Runnable {
                 and send back to client
         3. Either send acknowledgement with number of hops or send failure message back to client
         */
+    }
+
+    public void disconnectClient(EndDevice endDevice) {
+        Integer count = NetworkLayerServer.clientInterfaces.get(endDevice.getIpAddress());
+        count--;
+        NetworkLayerServer.clientInterfaces.put(endDevice.getIpAddress(), count);
+
+        //NetworkLayerServer.endDeviceMap.remove()
     }
 
 

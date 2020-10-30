@@ -11,6 +11,14 @@ public class EndDevice implements Serializable {
         this.ipAddress = ipAddress;
         this.gateway = gateway;
         this.deviceID = deviceID;
+        if (!isValid(ipAddress,gateway)) System.out.println("Not valid client");
+    }
+
+    private boolean isValid(IPAddress ip, IPAddress gateway) {
+        for (int i=0; i < 3; i++) {
+            if (!ip.getBytes()[i].equals(gateway.getBytes()[i])) return false;
+        }
+        return true;
     }
 
     public IPAddress getIpAddress() {
