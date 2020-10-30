@@ -7,7 +7,7 @@ public class ServerThread implements Runnable {
         this.networkUtility = networkUtility;
         this.endDevice = endDevice;
         System.out.println("Server Ready for client " + NetworkLayerServer.clientCount);
-        NetworkLayerServer.clientCount++;
+        //NetworkLayerServer.clientCount++;
         new Thread(this).start();
     }
 
@@ -16,7 +16,13 @@ public class ServerThread implements Runnable {
         /**
          * Synchronize actions with client.
          */
-        
+        networkUtility.write("End-Device-Config::" + endDevice.getDeviceID().toString() + '-' + endDevice.getIpAddress() + '-' + endDevice.getGateway());
+        int active = NetworkLayerServer.endDevices.size();
+        networkUtility.write(""+ active);
+        for (EndDevice endDevice: NetworkLayerServer.endDevices) {
+            networkUtility.write("End-Device-Config::" + endDevice.getDeviceID().toString() + '-' + endDevice.getIpAddress() + '-' + endDevice.getGateway());
+        }
+
         /*
         Tasks:
         1. Upon receiving a packet and recipient, call deliverPacket(packet)
