@@ -22,23 +22,43 @@ public class ServerThread implements Runnable {
         for (EndDevice endDevice: NetworkLayerServer.endDevices) {
             networkUtility.write("End-Device-Config::" + endDevice.getDeviceID().toString() + '-' + endDevice.getIpAddress() + '-' + endDevice.getGateway());
         }
+        while(true) {
+            //Tasks:
+            //1. Upon receiving a packet and recipient, call deliverPacket(packet)
+            String s = (String) networkUtility.read();
+            System.out.println("Request From -----" + endDevice.getIpAddress().getString()+" :::: "+s);
+            String message = s.split("-")[0];
+            IPAddress destIp = new IPAddress(s.split("-")[1]);
+            String specialMessage = s.split("-")[2];
 
-        /*
-        Tasks:
-        1. Upon receiving a packet and recipient, call deliverPacket(packet)
-        2. If the packet contains "SHOW_ROUTE" request, then fetch the required information
-                and send back to client
-        3. Either send acknowledgement with number of hops or send failure message back to client
-        */
+            Packet packet = new Packet(message, specialMessage, endDevice.getIpAddress(), destIp);
+
+            //2. If the packet contains "SHOW_ROUTE" request, then fetch the required information
+            //and send back to client
+            if (specialMessage.equals("SHOW_ROUTE")) showRouteAndSendBack();
+
+            //3. Either send acknowledgement with number of hops or send failure message back to client
+            boolean isPacketDelivered = deliverPacket(packet);
+            if (isPacketDelivered) sendAcknowledgement();
+            else sendFailure();
+        }
+
+
     }
 
-    public void disconnectClient(EndDevice endDevice) {
-        Integer count = NetworkLayerServer.clientInterfaces.get(endDevice.getIpAddress());
-        count--;
-        NetworkLayerServer.clientInterfaces.put(endDevice.getIpAddress(), count);
+    private void sendFailure() {
 
-        //NetworkLayerServer.endDeviceMap.remove()
     }
+
+    private void sendAcknowledgement() {
+
+    }
+
+    void showRouteAndSendBack() {
+
+    }
+
+
 
 
     public Boolean deliverPacket(Packet p) {
@@ -71,6 +91,14 @@ public class ServerThread implements Runnable {
             otherwise successfully sent to the destination router
         */
     return false;
+    }
+
+    public void disconnectClient(EndDevice endDevice) {
+        Integer count = NetworkLayerServer.clientInterfaces.get(endDevice.getIpAddress());
+        count--;
+        NetworkLayerServer.clientInterfaces.put(endDevice.getIpAddress(), count);
+
+        //NetworkLayerServer.endDeviceMap.remove()
     }
 
     @Override
