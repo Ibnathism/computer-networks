@@ -6,7 +6,7 @@ public class ServerThread implements Runnable {
     ServerThread(NetworkUtility networkUtility, EndDevice endDevice) {
         this.networkUtility = networkUtility;
         this.endDevice = endDevice;
-        System.out.println("Server Ready for client " + endDevice.getIpAddress());
+        //System.out.println("Server Ready for client " + endDevice.getIpAddress());
         //NetworkLayerServer.clientCount++;
         new Thread(this).start();
     }
@@ -59,37 +59,69 @@ public class ServerThread implements Runnable {
     }
 
 
-
+    private EndDevice getDevice(IPAddress ipAddress) {
+        EndDevice device = null;
+        for (EndDevice endDevice: NetworkLayerServer.endDevices) {
+            if (ipAddress.getString().equals(endDevice.getIpAddress().getString())) {
+                device = endDevice;
+                break;
+            }
+        }
+        return device;
+    }
 
     public Boolean deliverPacket(Packet p) {
+        //1. Find the router s which has an interface such that the interface and source end device have same network address.
+        EndDevice source = getDevice(p.getSourceIP());
+        Integer routerIdOfSource = -1;
+        assert source!=null;
+        routerIdOfSource = NetworkLayerServer.deviceIDtoRouterID.get(source.getDeviceID());
+        Router s = NetworkLayerServer.routerMap.get(routerIdOfSource);;
+        assert s != null;
+        //System.out.println("Source Router : " + s.getRouterId());
 
-        
-        /*
-        1. Find the router s which has an interface
-                such that the interface and source end device have same network address.
-        2. Find the router d which has an interface
-                such that the interface and destination end device have same network address.
-        3. Implement forwarding, i.e., s forwards to its gateway router x considering d as the destination.
-                similarly, x forwards to the next gateway router y considering d as the destination,
-                and eventually the packet reaches to destination router d.
+        //2. Find the router d which has an interface such that the interface and destination end device have same network address.
+        EndDevice dest = getDevice(p.getDestinationIP());
+        Integer routerIdOfDest = -1;
+        assert dest!=null;
+        routerIdOfDest = NetworkLayerServer.deviceIDtoRouterID.get(dest.getDeviceID());
+        Router d = NetworkLayerServer.routerMap.get(routerIdOfDest);;
+        assert d != null;
+        //System.out.println("Destination Router : " + d.getRouterId());
 
-            3(a) If, while forwarding, any gateway x, found from routingTable of router r is in down state[x.state==FALSE]
-                    (i) Drop packet
-                    (ii) Update the entry with distance Constants.INFTY
-                    (iii) Block NetworkLayerServer.stateChanger.t
-                    (iv) Apply DVR starting from router r.
-                    (v) Resume NetworkLayerServer.stateChanger.t
+        //3. Implement forwarding, i.e., s forwards to its gateway router x considering d as the destination.
+        //similarly, x forwards to the next gateway router y considering d as the destination,
+        //and eventually the packet reaches to destination router d.
+                    //3(a) If, while forwarding, any gateway x, found from routingTable of router r is in down state[x.state==FALSE]
+                    //(i) Drop packet
+                    //(ii) Update the entry with distance Constants.INFTY
+                    //(iii) Block NetworkLayerServer.stateChanger.t
+                    //(iv) Apply DVR starting from router r.
+                    //(v) Resume NetworkLayerServer.stateChanger.t
+        int tempRouterId = -1;
+        Router sourceRouter = s;
+        while (tempRouterId!=d.getRouterId()) {
+            tempRouterId = sourceRouter.getRTEntry(d.getRouterId()).getGatewayRouterId();
+            //System.out.print("-"+tempRouterId+"-");
+            for(Router router: NetworkLayerServer.routers){
+                if (router.getRouterId()==tempRouterId) {
+                    sourceRouter = router;
+                    break;
+                }
+            }
+        }
+        //System.out.println();
 
-            3(b) If, while forwarding, a router x receives the packet from router y,
-                    but routingTableEntry shows Constants.INFTY distance from x to y,
-                    (i) Update the entry with distance 1
-                    (ii) Block NetworkLayerServer.stateChanger.t
-                    (iii) Apply DVR starting from router x.
-                    (iv) Resume NetworkLayerServer.stateChanger.t
 
-        4. If 3(a) occurs at any stage, packet will be dropped,
-            otherwise successfully sent to the destination router
-        */
+
+           // 3(b) If, while forwarding, a router x receives the packet from router y, but routingTableEntry shows Constants.INFTY distance from x to y,
+                    //(i) Update the entry with distance 1
+                    //(ii) Block NetworkLayerServer.stateChanger.t
+                    //(iii) Apply DVR starting from router x.
+                    //(iv) Resume NetworkLayerServer.stateChanger.t
+
+        //4. If 3(a) occurs at any stage, packet will be dropped, otherwise successfully sent to the destination router
+
     return false;
     }
 

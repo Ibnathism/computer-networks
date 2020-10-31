@@ -95,7 +95,7 @@ public class NetworkLayerServer {
         return temp;
     }
 
-    public static synchronized void simpleDVR(int startingRouterId) {
+    public static synchronized void simpleDVR(int startingRouterId) {     ///TODO: stop RouterStateChanger while running DVR
         boolean isConvergence = false;
         Router startingRouter = routerMap.get(startingRouterId);
 

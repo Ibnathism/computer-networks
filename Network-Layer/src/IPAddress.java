@@ -16,6 +16,11 @@ public class IPAddress implements Serializable {
 
     }
 
+    public String getNetworkAddress() {
+        String[] str = string.split("\\.");
+        return string + str[0] + str[1] + str[2];
+    }
+
     public Short[] getBytes()
     {
         return bytes;

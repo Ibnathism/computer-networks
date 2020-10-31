@@ -22,27 +22,27 @@ public class Client {
 
             //1. Receive EndDevice configuration from server
             String s = (String) networkUtility.read();
-            System.out.println("Received: " + s);
+            //System.out.println("Received: " + s);
             String msg = s.split("::")[0];
             myDevice = getDevice(s.split("::")[1]);
 
 
             //2. Receive active client list from server
             s = (String) networkUtility.read();
-            System.out.println("Number of active devices "+s);
+            //System.out.println("Number of active devices "+s);
             int active = Integer.parseInt(s);
             for (int i = 0; i < active; i++) {
                 s = (String) networkUtility.read();
                 EndDevice client = getDevice(s.split("::")[1]);
                 if (!myDevice.getIpAddress().getString().equals(client.getIpAddress().getString())) {
-                    System.out.println("Client "+client.getIpAddress() +" added");
+                    //System.out.println("Client "+client.getIpAddress() +" added");
                     activeClientList.add(client);
                 }
                 //System.out.println("Client #"+i+ ":: "+s);
             }
-            for (EndDevice endDevice: activeClientList) {
+            /*for (EndDevice endDevice: activeClientList) {
                 System.out.println(endDevice.getDeviceID()+"-"+endDevice.getIpAddress());
-            }
+            }*/
 
 
             System.out.println("-------------------------");
