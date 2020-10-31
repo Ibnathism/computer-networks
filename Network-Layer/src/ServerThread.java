@@ -13,6 +13,11 @@ public class ServerThread implements Runnable {
 
     @Override
     public void run() {
+        System.out.print("Down Routers ");
+        for (Router router: NetworkLayerServer.routers) {
+            if (!router.getState()) System.out.print("  "+router.getRouterId()+",");
+        }
+        System.out.println();
         /**
          * Synchronize actions with client.
          */
@@ -69,6 +74,11 @@ public class ServerThread implements Runnable {
         }
         return device;
     }
+    void dropPacket(Packet packet) {
+        System.out.println("Packet Dropped "+packet.getMessage());
+        //networkUtility.write("Your packet dropped");
+    }
+
 
     public Boolean deliverPacket(Packet p) {
         //1. Find the router s which has an interface such that the interface and source end device have same network address.
@@ -89,6 +99,7 @@ public class ServerThread implements Runnable {
         assert d != null;
         //System.out.println("Destination Router : " + d.getRouterId());
 
+        //if (!s.getState())  return false;
         //3. Implement forwarding, i.e., s forwards to its gateway router x considering d as the destination.
         //similarly, x forwards to the next gateway router y considering d as the destination,
         //and eventually the packet reaches to destination router d.
@@ -99,18 +110,29 @@ public class ServerThread implements Runnable {
                     //(iv) Apply DVR starting from router r.
                     //(v) Resume NetworkLayerServer.stateChanger.t
         int tempRouterId = -1;
-        Router sourceRouter = s;
+        Router tempRouter = s;
         while (tempRouterId!=d.getRouterId()) {
-            tempRouterId = sourceRouter.getRTEntry(d.getRouterId()).getGatewayRouterId();
-            //System.out.print("-"+tempRouterId+"-");
-            for(Router router: NetworkLayerServer.routers){
-                if (router.getRouterId()==tempRouterId) {
-                    sourceRouter = router;
+            if (!tempRouter.getState()) {
+                dropPacket(p);
+                if (tempRouter.getRTEntry(d.getRouterId())!=null) tempRouter.getRTEntry(d.getRouterId()).setDistance(Constants.INFINITY);
+                NetworkLayerServer.simpleDVR(tempRouter.getRouterId());
+                break;
+            }
+            else {
+                tempRouterId = tempRouter.getRTEntry(d.getRouterId()).getGatewayRouterId();
+                //System.out.println("TEMP ROUTER ID "+tempRouterId);
+                if (tempRouterId==-1) {
+                    dropPacket(p);
+                    tempRouter.getRTEntry(d.getRouterId()).setDistance(Constants.INFINITY);
+                    NetworkLayerServer.simpleDVR(tempRouter.getRouterId());
                     break;
                 }
+                tempRouter = NetworkLayerServer.routerMap.get(tempRouterId);
             }
         }
         //System.out.println();
+        if (tempRouterId==d.getRouterId()) System.out.println("Packet Sending Successful");
+        //networkUtility.write("Your packet sent");
 
 
 

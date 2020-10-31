@@ -48,6 +48,7 @@ public class NetworkLayerServer {
                 Socket socket = serverSocket.accept();
                 System.out.println("Client" + clientCount + " attempted to connect");
                 EndDevice endDevice = getClientDeviceSetup();
+                //if (!routerMap.get(interfacetoRouterID.get(endDevice.getGateway())).getState()) continue;
                 clientCount++;
                 endDevices.add(endDevice);
                 endDeviceMap.put(endDevice.getIpAddress(),endDevice);

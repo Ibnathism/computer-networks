@@ -46,7 +46,8 @@ public class Client {
 
 
             System.out.println("-------------------------");
-
+            Random random = new Random(System.currentTimeMillis());
+            int r;
             for(int i=0;i<5;i++)
             {
                 //Generate a random message
@@ -58,11 +59,15 @@ public class Client {
                 //Packet packet = new Packet(message, "", myDevice.getIpAddress(), receiver.getIpAddress());
 
                 if (activeClientList.size()>3) {
-                    Random random = new Random(System.currentTimeMillis());
-                    int r = Math.abs(random.nextInt(activeClientList.size()));
+                    r = random.nextInt(activeClientList.size());
                     EndDevice receiver = activeClientList.get(r);
                     System.out.println("Want to send " + message+" to "+receiver.getIpAddress().getString());
                     networkUtility.write(message+"-"+receiver.getIpAddress().getString()+"-"+"NORMAL");
+                    /*s = (String) networkUtility.read();
+                    while (s==null) {
+                        s = (String) networkUtility.read();
+                        System.out.println("After sending the packet "+ s);
+                    }*/
                 }
 
                 /*if(i==20)
