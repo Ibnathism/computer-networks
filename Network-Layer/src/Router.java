@@ -151,7 +151,7 @@ public class Router {
                 double distNew = baseDistance + neighbourEntry.getDistance();
                 int nextHopXY = entry.getGatewayRouterId();
                 int nextHopZY = neighbourEntry.getGatewayRouterId();
-                if ((distPrev > distNew && nextHopZY==this.routerId)) {
+                if ((distPrev > distNew && nextHopZY==this.routerId)) {   ///TODO: How to do force update?
                     entry.setDistance(distNew);
                     entry.setGatewayRouterId(neighbor.routerId);
                     isChanged = true;

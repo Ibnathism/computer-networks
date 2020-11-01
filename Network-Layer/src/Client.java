@@ -1,8 +1,10 @@
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
 
 //Work needed
 public class Client {
+
     static EndDevice getDevice(String str){
         String[] endDeviceConfig = str.split("-");
         IPAddress endDeviceIP = new IPAddress(endDeviceConfig[1]);
@@ -13,6 +15,10 @@ public class Client {
     public static void main(String[] args) throws InterruptedException {
         NetworkUtility networkUtility = new NetworkUtility("127.0.0.1", 4444);
         System.out.println("Connected to server");
+        int totalPackets = 10;
+        int successCount = 0;
+        int failureCount = 0;
+
         EndDevice myDevice;
         ArrayList<EndDevice> activeClientList = new ArrayList<>();
 
@@ -39,7 +45,7 @@ public class Client {
             System.out.println("-------------------------");
             Random random = new Random(System.currentTimeMillis());
             int r;
-            for(int i=0;i<5;i++)
+            for(int i=0;i<totalPackets;i++)
             {
                 String message = "MESSAGE" + i;
                 if (activeClientList.size()>2) {
@@ -53,37 +59,32 @@ public class Client {
                         networkUtility.write(message+"-"+receiver.getIpAddress().getString()+"-"+Constants.NORMAL_MESSAGE);
                     }
                     s = (String) networkUtility.read();
-                    System.out.println("After sending the packet "+ s);
+                    if (s.equals(Constants.SUCCESS)) {
+                        successCount++;
+                        System.out.println(Constants.SUCCESS);
+                        String str = (String) networkUtility.read();
+                        String[] outputs = str.split(":");
+                        System.out.println(outputs[0]);
+                        System.out.println(outputs[1]);
+                        System.out.println(outputs[2]);
+                    }
+                    else if (s.equals(Constants.FAILURE)) {
+                        failureCount++;
+                        System.out.println(Constants.FAILURE);
 
+                    }
+                    else System.out.println("Not Valid");
                 }
 
-                /*if(i==20)
-                {
-                    //Send the message and recipient IP address to server and a special request "SHOW_ROUTE"
-                    networkUtility.write(message+"-"+receiver.getIpAddress().getString()+"-"+"SHOW_ROUTE");
-                    // Display routing path, hop count and routing table of each router [You need to receive
-                    // all the required info from the server in response to "SHOW_ROUTE" request]
-                }*/
-                //else {
-                    //Simply send the message and recipient IP address to server.
-                //}
-                //If server can successfully send the message, client will get an acknowledgement along with hop count
-                //Otherwise, client will get a failure message [dropped packet]
             }
+            showStats(totalPackets, successCount, failureCount);
 
         }
 
+    }
 
 
-
-
-
-
-
-        //18. Report average number of hops and drop rate
-
-
-
+    private static void showStats(int total, int success, int failure) {
 
     }
 }

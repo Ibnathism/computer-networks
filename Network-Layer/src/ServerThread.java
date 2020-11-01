@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class ServerThread implements Runnable {
 
     NetworkUtility networkUtility;
@@ -35,7 +37,7 @@ public class ServerThread implements Runnable {
 
             //2. If the packet contains "SHOW_ROUTE" request, then fetch the required information
             //and send back to client
-            if (specialMessage.equals("SHOW_ROUTE")) showRouteAndSendBack();
+            if (specialMessage.equals(Constants.SHOW_ROUTE)) showRouteAndSendBack();
 
             //3. Either send acknowledgement with number of hops or send failure message back to client
             boolean isPacketDelivered = deliverPacket(packet);
@@ -71,7 +73,7 @@ public class ServerThread implements Runnable {
     }
     void dropPacket(Packet packet) {
         //System.out.println("Packet Dropped "+packet.getMessage());
-        networkUtility.write("Your packet dropped");
+        networkUtility.write(Constants.FAILURE);
     }
 
     public void applyDVR(int startingRouterID) {
@@ -81,6 +83,9 @@ public class ServerThread implements Runnable {
 
 
     public Boolean deliverPacket(Packet p) {
+        ArrayList<Router> hops = new ArrayList<>();
+        StringBuilder hopString = new StringBuilder();
+
         EndDevice source = getDevice(p.getSourceIP());
         Integer routerIdOfSource = -1;
         assert source!=null;
@@ -96,12 +101,78 @@ public class ServerThread implements Runnable {
         Router d = NetworkLayerServer.routerMap.get(routerIdOfDest);;
         assert d != null;
         //System.out.println("Destination Router : " + d.getRouterId());
+        int count = 0;
 
+        Router prev = s;
+        Router next = null;
 
-        int tempRouterId = -1;
+        if (!prev.getState()){
+            System.out.println("Gateway Router is OFF");
+            dropPacket(p);
+        }
+        else {
+            do {
+                count++;
+                if (count>Constants.INFINITY) {
+                    dropPacket(p);
+                    break;
+                }
+                p.hopcount++;
+                next = NetworkLayerServer.routerMap.get(prev.getRTEntry(d.getRouterId()).getGatewayRouterId());
+                if (next==null || !next.getState()) {
+                    dropPacket(p);
+                    if (prev.getRTEntry(d.getRouterId())!=null) prev.getRTEntry(d.getRouterId()).setDistance(Constants.INFINITY);
+                    applyDVR(prev.getRouterId());
+                    break;
+                }
+                /*3(b) If, while forwarding, a router next receives the packet from router prev,
+                but routingTableEntry shows Constants.INFTY distance from next to prev,
+                (i) Update the entry with distance 1
+                (ii) Block NetworkLayerServer.stateChanger.t
+                        (iii) Apply DVR starting from router x.
+                (iv) Resume NetworkLayerServer.stateChanger.t*/
+                if (next.getRTEntry(prev.getRouterId())!=null && next.getRTEntry(prev.getRouterId()).getDistance()==Constants.INFINITY) {
+                    next.getRTEntry(prev.getRouterId()).setDistance(1);
+                    applyDVR(next.getRouterId());
+                }
+                hops.add(prev);
+                prev = next;
+            } while (next.getRouterId()!=d.getRouterId());
+            if (next!=null && next.getRouterId()==d.getRouterId()) {
+                hops.add(next);
+                //System.out.println("Packet Sending Successful");
+                networkUtility.write(Constants.SUCCESS);
+                System.out.println("HOPS "+ p.hopcount);
+                hopString.append("Hop Count ").append(p.hopcount).append(":").append("PATH ");
+                for (Router router: hops) {
+                    System.out.print("-> " + router.getRouterId());
+                    hopString.append(router.getRouterId()).append("-");
+                }
+                hopString.append(":Routing Tables\n");
+                for (Router router: hops){
+                    hopString.append("Table Of Router ").append(router.getRouterId()).append("\n");
+                    for (RoutingTableEntry entry: router.getRoutingTable()) {
+                        hopString.append(entry.getRouterId()).append("-").append(entry.getDistance()).append("-").append(entry.getGatewayRouterId()).append("\n");
+                    }
+
+                }
+                networkUtility.write(hopString.toString());
+                System.out.println();
+                return true;
+            }
+
+        }
+
+        /*int tempRouterId = -1;
         Router tempRouter = s;
-        Router hopRouter = null;
+        Router hopRouter = s;
         while (tempRouterId!=d.getRouterId()) {
+            count++;
+            if (count>Constants.INFINITY) {
+                dropPacket(p);
+                break;
+            }
+            p.hopcount++;
             if (!tempRouter.getState()) {
                 dropPacket(p);
                 if (tempRouter.getRTEntry(d.getRouterId())!=null) tempRouter.getRTEntry(d.getRouterId()).setDistance(Constants.INFINITY);
@@ -124,16 +195,34 @@ public class ServerThread implements Runnable {
                     hopRouter.getRTEntry(tempRouter.getRouterId()).setDistance(1);
                     applyDVR(tempRouter.getRouterId());
                 }
-
+                //System.out.println("Forwarding "+ tempRouter.getRouterId() +" to " + hopRouter.getRouterId());
+                hops.add(tempRouter);
                 tempRouter =  NetworkLayerServer.routerMap.get(tempRouterId);
             }
         }
 
         if (tempRouterId==d.getRouterId()) {
+            hops.add(tempRouter);
             //System.out.println("Packet Sending Successful");
-            networkUtility.write("Your packet has been sent");
+            networkUtility.write(Constants.SUCCESS);
+            System.out.println("HOPS "+ p.hopcount);
+            hopString.append("Hop Count ").append(p.hopcount).append(":").append("PATH ");
+            for (Router router: hops) {
+                System.out.print("-> " + router.getRouterId());
+                hopString.append(router.getRouterId()).append("-");
+            }
+            hopString.append(":Routing Tables\n");
+            for (Router router: hops){
+                hopString.append("Table Of Router ").append(router.getRouterId()).append("\n");
+                for (RoutingTableEntry entry: router.getRoutingTable()) {
+                    hopString.append(entry.getRouterId()).append("-").append(entry.getDistance()).append("-").append(entry.getGatewayRouterId()).append("\n");
+                }
+
+            }
+            networkUtility.write(hopString.toString());
+            System.out.println();
             return true;
-        }
+        }*/
         return false;
     }
 
