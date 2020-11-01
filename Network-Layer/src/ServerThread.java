@@ -77,8 +77,8 @@ public class ServerThread implements Runnable {
     }
 
     public void applyDVR(int startingRouterID) {
-        //NetworkLayerServer.simpleDVR(startingRouterID);
-        NetworkLayerServer.DVR(startingRouterID);
+        NetworkLayerServer.simpleDVR(startingRouterID);
+        //NetworkLayerServer.DVR(startingRouterID);
     }
 
 
@@ -104,14 +104,14 @@ public class ServerThread implements Runnable {
         int count = 0;
 
         Router prev = s;
-        Router next = null;
-
+        Router next = s;
         if (!prev.getState()){
             System.out.println("Gateway Router is OFF");
             dropPacket(p);
         }
         else {
             do {
+
                 count++;
                 if (count>Constants.INFINITY) {
                     dropPacket(p);
@@ -119,25 +119,23 @@ public class ServerThread implements Runnable {
                 }
                 p.hopcount++;
                 next = NetworkLayerServer.routerMap.get(prev.getRTEntry(d.getRouterId()).getGatewayRouterId());
+                System.out.println(prev.getRouterId() + " -> " + next.getRouterId());
                 if (next==null || !next.getState()) {
                     dropPacket(p);
                     if (prev.getRTEntry(d.getRouterId())!=null) prev.getRTEntry(d.getRouterId()).setDistance(Constants.INFINITY);
                     applyDVR(prev.getRouterId());
                     break;
                 }
-                /*3(b) If, while forwarding, a router next receives the packet from router prev,
-                but routingTableEntry shows Constants.INFTY distance from next to prev,
-                (i) Update the entry with distance 1
-                (ii) Block NetworkLayerServer.stateChanger.t
-                        (iii) Apply DVR starting from router x.
-                (iv) Resume NetworkLayerServer.stateChanger.t*/
                 if (next.getRTEntry(prev.getRouterId())!=null && next.getRTEntry(prev.getRouterId()).getDistance()==Constants.INFINITY) {
                     next.getRTEntry(prev.getRouterId()).setDistance(1);
                     applyDVR(next.getRouterId());
                 }
                 hops.add(prev);
                 prev = next;
+
             } while (next.getRouterId()!=d.getRouterId());
+
+
             if (next!=null && next.getRouterId()==d.getRouterId()) {
                 hops.add(next);
                 //System.out.println("Packet Sending Successful");

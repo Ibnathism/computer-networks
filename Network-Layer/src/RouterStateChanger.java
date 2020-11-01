@@ -16,10 +16,10 @@ public class RouterStateChanger implements Runnable {
 
     @Override
     public void run() {
-        Random random = new Random(System.currentTimeMillis());
+        /*Random random = new Random(System.currentTimeMillis());
         while (true) {
             if (isPause) break;
-            /*if (islocked) {
+            *//*if (islocked) {
                 try {
                     synchronized (msg) {
                         msg.wait();
@@ -27,7 +27,7 @@ public class RouterStateChanger implements Runnable {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            }*/
+            }*//*
             double d = random.nextDouble();
             if (d < Constants.LAMBDA) {
                 revertRandomRouter();
@@ -37,7 +37,7 @@ public class RouterStateChanger implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
     }
 
     public void revertRandomRouter() {

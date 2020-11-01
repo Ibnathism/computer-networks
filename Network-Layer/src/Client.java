@@ -15,7 +15,7 @@ public class Client {
     public static void main(String[] args) throws InterruptedException {
         NetworkUtility networkUtility = new NetworkUtility("127.0.0.1", 4444);
         System.out.println("Connected to server");
-        int totalPackets = 10;
+        int totalPackets = 100;
         int successCount = 0;
         int failureCount = 0;
 
@@ -85,6 +85,7 @@ public class Client {
 
 
     private static void showStats(int total, int success, int failure) {
+
 
     }
 }
