@@ -106,6 +106,7 @@ public class ServerThread implements Runnable {
                     //(v) Resume NetworkLayerServer.stateChanger.t
         int tempRouterId = -1;
         Router tempRouter = s;
+        Router hopRouter = null;
         while (tempRouterId!=d.getRouterId()) {
             if (!tempRouter.getState()) {
                 dropPacket(p);
@@ -115,6 +116,7 @@ public class ServerThread implements Runnable {
             }
             else {
                 tempRouterId = tempRouter.getRTEntry(d.getRouterId()).getGatewayRouterId();
+
                 //System.out.println("TEMP ROUTER ID "+tempRouterId);
                 if (tempRouterId==-1) {
                     dropPacket(p);
@@ -122,28 +124,29 @@ public class ServerThread implements Runnable {
                     NetworkLayerServer.simpleDVR(tempRouter.getRouterId());
                     break;
                 }
-                tempRouter = NetworkLayerServer.routerMap.get(tempRouterId);
+
+                // 3(b) If, while forwarding, a router x receives the packet from router y, but routingTableEntry shows Constants.INFTY distance from x to y,
+                //(i) Update the entry with distance 1
+                //(ii) Block NetworkLayerServer.stateChanger.t
+                //(iii) Apply DVR starting from router x.
+                //(iv) Resume NetworkLayerServer.stateChanger.t
+
+                hopRouter = NetworkLayerServer.routerMap.get(tempRouterId);
+                if (hopRouter.getRTEntry(tempRouter.getRouterId())!=null && hopRouter.getRTEntry(tempRouter.getRouterId()).getDistance()==Constants.INFINITY) {
+                    hopRouter.getRTEntry(tempRouter.getRouterId()).setDistance(1);
+                    NetworkLayerServer.simpleDVR(tempRouter.getRouterId());
+                }
+
+                tempRouter =  NetworkLayerServer.routerMap.get(tempRouterId);
             }
         }
-        //System.out.println();
+        //4. If 3(a) occurs at any stage, packet will be dropped, otherwise successfully sent to the destination router
         if (tempRouterId==d.getRouterId()) {
             //System.out.println("Packet Sending Successful");
             networkUtility.write("Your packet has been sent");
             return true;
         }
-
-
-
-
-           // 3(b) If, while forwarding, a router x receives the packet from router y, but routingTableEntry shows Constants.INFTY distance from x to y,
-                    //(i) Update the entry with distance 1
-                    //(ii) Block NetworkLayerServer.stateChanger.t
-                    //(iii) Apply DVR starting from router x.
-                    //(iv) Resume NetworkLayerServer.stateChanger.t
-
-        //4. If 3(a) occurs at any stage, packet will be dropped, otherwise successfully sent to the destination router
-
-    return false;
+        return false;
     }
 
     public void disconnectClient(EndDevice endDevice) {

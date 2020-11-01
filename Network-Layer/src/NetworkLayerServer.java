@@ -41,7 +41,7 @@ public class NetworkLayerServer {
 
         //DVR(1); //Update routing table using distance vector routing until convergence
         simpleDVR(1);
-        stateChanger = new RouterStateChanger();//Starts a new thread which turns on/off routers randomly depending on parameter Constants.LAMBDA
+        //stateChanger = new RouterStateChanger();//Starts a new thread which turns on/off routers randomly depending on parameter Constants.LAMBDA
 
         while(true) {
             try {
@@ -124,7 +124,7 @@ public class NetworkLayerServer {
             isConvergence = !isUpdate;
         }
         System.out.println("DVR ENDED");
-        if (stateChanger!=null) stateChanger = new RouterStateChanger();
+        stateChanger = new RouterStateChanger();
     }
 
     public static EndDevice getClientDeviceSetup() {

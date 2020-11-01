@@ -15,19 +15,14 @@ public class Client {
         System.out.println("Connected to server");
         EndDevice myDevice;
         ArrayList<EndDevice> activeClientList = new ArrayList<>();
-        /**
-         * Tasks
-         */
+
         while (true) {
 
-            //1. Receive EndDevice configuration from server
             String s = (String) networkUtility.read();
-            //System.out.println("Received: " + s);
+            System.out.println("Received: " + s);
             String msg = s.split("::")[0];
             myDevice = getDevice(s.split("::")[1]);
 
-
-            //2. Receive active client list from server
             s = (String) networkUtility.read();
             //System.out.println("Number of active devices "+s);
             int active = Integer.parseInt(s);
@@ -40,29 +35,23 @@ public class Client {
                 }
                 //System.out.println("Client #"+i+ ":: "+s);
             }
-            /*for (EndDevice endDevice: activeClientList) {
-                System.out.println(endDevice.getDeviceID()+"-"+endDevice.getIpAddress());
-            }*/
-
 
             System.out.println("-------------------------");
             Random random = new Random(System.currentTimeMillis());
             int r;
-            for(int i=0;i<5;i++)
+            for(int i=0;i<100;i++)
             {
-                //Generate a random message
                 String message = "MESSAGE" + i;
-
-                //Assign a random receiver from active client list
-
-
-                //Packet packet = new Packet(message, "", myDevice.getIpAddress(), receiver.getIpAddress());
-
-                if (activeClientList.size()>3) {
+                if (activeClientList.size()>2) {
                     r = random.nextInt(activeClientList.size());
                     EndDevice receiver = activeClientList.get(r);
                     System.out.println("Want to send " + message+" to "+receiver.getIpAddress().getString());
-                    networkUtility.write(message+"-"+receiver.getIpAddress().getString()+"-"+"NORMAL");
+                    if (i==20) {
+                        networkUtility.write(message+" - "+receiver.getIpAddress().getString()+" - "+Constants.SHOW_ROUTE);
+                    }
+                    else {
+                        networkUtility.write(message+" - "+receiver.getIpAddress().getString()+" - "+Constants.NORMAL_MESSAGE);
+                    }
                     s = (String) networkUtility.read();
                     System.out.println("After sending the packet "+ s);
 
