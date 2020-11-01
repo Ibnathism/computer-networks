@@ -126,8 +126,6 @@ public class Router {
                     isChanged = true;
                 }
             }
-
-
         }
         return isChanged;
     }
@@ -140,7 +138,28 @@ public class Router {
     }
 
     public boolean sfupdateRoutingTable(Router neighbor) {
-        return false;
+        // x = this
+        // y = this
+        // z = neighbor
+        boolean isChanged = false;
+        double baseDistance = this.getRTEntry(neighbor.getRouterId()).getDistance();
+        for (RoutingTableEntry entry : this.routingTable) {
+            RoutingTableEntry neighbourEntry = neighbor.getRTEntry(entry.getRouterId());
+            if (neighbourEntry != null) {
+                if (this.routerId == entry.getRouterId()) continue;
+                double distPrev = entry.getDistance();
+                double distNew = baseDistance + neighbourEntry.getDistance();
+                int nextHopXY = entry.getGatewayRouterId();
+                int nextHopZY = neighbourEntry.getGatewayRouterId();
+                if ((distPrev > distNew && nextHopZY==this.routerId)) {
+                    entry.setDistance(distNew);
+                    entry.setGatewayRouterId(neighbor.routerId);
+                    isChanged = true;
+                }
+                entry.setGatewayRouterId(neighbor.routerId);
+            }
+        }
+        return isChanged;
     }
 
     /**

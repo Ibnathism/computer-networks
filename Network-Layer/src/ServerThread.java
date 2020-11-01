@@ -74,9 +74,13 @@ public class ServerThread implements Runnable {
         networkUtility.write("Your packet dropped");
     }
 
+    public void applyDVR(int startingRouterID) {
+        //NetworkLayerServer.simpleDVR(startingRouterID);
+        NetworkLayerServer.DVR(startingRouterID);
+    }
+
 
     public Boolean deliverPacket(Packet p) {
-        //1. Find the router s which has an interface such that the interface and source end device have same network address.
         EndDevice source = getDevice(p.getSourceIP());
         Integer routerIdOfSource = -1;
         assert source!=null;
@@ -85,7 +89,6 @@ public class ServerThread implements Runnable {
         assert s != null;
         //System.out.println("Source Router : " + s.getRouterId());
 
-        //2. Find the router d which has an interface such that the interface and destination end device have same network address.
         EndDevice dest = getDevice(p.getDestinationIP());
         Integer routerIdOfDest = -1;
         assert dest!=null;
@@ -94,16 +97,7 @@ public class ServerThread implements Runnable {
         assert d != null;
         //System.out.println("Destination Router : " + d.getRouterId());
 
-        //if (!s.getState())  return false;
-        //3. Implement forwarding, i.e., s forwards to its gateway router x considering d as the destination.
-        //similarly, x forwards to the next gateway router y considering d as the destination,
-        //and eventually the packet reaches to destination router d.
-                    //3(a) If, while forwarding, any gateway x, found from routingTable of router r is in down state[x.state==FALSE]
-                    //(i) Drop packet
-                    //(ii) Update the entry with distance Constants.INFTY
-                    //(iii) Block NetworkLayerServer.stateChanger.t
-                    //(iv) Apply DVR starting from router r.
-                    //(v) Resume NetworkLayerServer.stateChanger.t
+
         int tempRouterId = -1;
         Router tempRouter = s;
         Router hopRouter = null;
@@ -111,7 +105,7 @@ public class ServerThread implements Runnable {
             if (!tempRouter.getState()) {
                 dropPacket(p);
                 if (tempRouter.getRTEntry(d.getRouterId())!=null) tempRouter.getRTEntry(d.getRouterId()).setDistance(Constants.INFINITY);
-                NetworkLayerServer.simpleDVR(tempRouter.getRouterId());
+                applyDVR(tempRouter.getRouterId());
                 break;
             }
             else {
@@ -121,26 +115,20 @@ public class ServerThread implements Runnable {
                 if (tempRouterId==-1) {
                     dropPacket(p);
                     tempRouter.getRTEntry(d.getRouterId()).setDistance(Constants.INFINITY);
-                    NetworkLayerServer.simpleDVR(tempRouter.getRouterId());
+                    applyDVR(tempRouter.getRouterId());
                     break;
                 }
-
-                // 3(b) If, while forwarding, a router x receives the packet from router y, but routingTableEntry shows Constants.INFTY distance from x to y,
-                //(i) Update the entry with distance 1
-                //(ii) Block NetworkLayerServer.stateChanger.t
-                //(iii) Apply DVR starting from router x.
-                //(iv) Resume NetworkLayerServer.stateChanger.t
 
                 hopRouter = NetworkLayerServer.routerMap.get(tempRouterId);
                 if (hopRouter.getRTEntry(tempRouter.getRouterId())!=null && hopRouter.getRTEntry(tempRouter.getRouterId()).getDistance()==Constants.INFINITY) {
                     hopRouter.getRTEntry(tempRouter.getRouterId()).setDistance(1);
-                    NetworkLayerServer.simpleDVR(tempRouter.getRouterId());
+                    applyDVR(tempRouter.getRouterId());
                 }
 
                 tempRouter =  NetworkLayerServer.routerMap.get(tempRouterId);
             }
         }
-        //4. If 3(a) occurs at any stage, packet will be dropped, otherwise successfully sent to the destination router
+
         if (tempRouterId==d.getRouterId()) {
             //System.out.println("Packet Sending Successful");
             networkUtility.write("Your packet has been sent");

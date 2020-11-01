@@ -39,7 +39,7 @@ public class Client {
             System.out.println("-------------------------");
             Random random = new Random(System.currentTimeMillis());
             int r;
-            for(int i=0;i<100;i++)
+            for(int i=0;i<5;i++)
             {
                 String message = "MESSAGE" + i;
                 if (activeClientList.size()>2) {
@@ -47,10 +47,10 @@ public class Client {
                     EndDevice receiver = activeClientList.get(r);
                     System.out.println("Want to send " + message+" to "+receiver.getIpAddress().getString());
                     if (i==20) {
-                        networkUtility.write(message+" - "+receiver.getIpAddress().getString()+" - "+Constants.SHOW_ROUTE);
+                        networkUtility.write(message+"-"+receiver.getIpAddress().getString()+"-"+Constants.SHOW_ROUTE);
                     }
                     else {
-                        networkUtility.write(message+" - "+receiver.getIpAddress().getString()+" - "+Constants.NORMAL_MESSAGE);
+                        networkUtility.write(message+"-"+receiver.getIpAddress().getString()+"-"+Constants.NORMAL_MESSAGE);
                     }
                     s = (String) networkUtility.read();
                     System.out.println("After sending the packet "+ s);

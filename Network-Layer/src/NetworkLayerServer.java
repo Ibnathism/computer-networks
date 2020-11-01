@@ -39,8 +39,8 @@ public class NetworkLayerServer {
 
         initRoutingTables(); //Initialize routing tables for all routers
 
-        //DVR(1); //Update routing table using distance vector routing until convergence
-        simpleDVR(1);
+        DVR(1); //Update routing table using distance vector routing until convergence
+        //simpleDVR(1);
         //stateChanger = new RouterStateChanger();//Starts a new thread which turns on/off routers randomly depending on parameter Constants.LAMBDA
 
         while(true) {
@@ -66,23 +66,45 @@ public class NetworkLayerServer {
     }
 
     public static synchronized void DVR(int startingRouterId) {
-        /**
-         * pseudocode
-         */
+        System.out.println("DVR STARTED");
+        if (stateChanger!=null) stateChanger.isPause = true;
+        try {
+            Thread.sleep(1000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        /*
-        while(convergence)
-        {
-            //convergence means no change in any routingTable before and after executing the following for loop
-            for each router r <starting from the router with routerId = startingRouterId, in any order>
-            {
-                1. T <- getRoutingTable of the router r
-                2. N <- find routers which are the active neighbors of the current router r
-                3. Update routingTable of each router t in N using the
-                   routing table of r [Hint: Use t.updateRoutingTable(r)] => neighbor.update(parent)
+        System.out.print("Down Routers ");
+        for (Router router: NetworkLayerServer.routers) {
+            if (!router.getState()) System.out.print("  "+router.getRouterId()+",");
+        }
+        System.out.println();
+
+
+        boolean isConvergence = false;
+        Router startingRouter = routerMap.get(startingRouterId);
+
+        while (!isConvergence) {
+            boolean isUpdate = sfUpdate(startingRouter);
+
+            for (Router router: routers) {
+                isUpdate = isUpdate | sfUpdate(router);
+            }
+            isConvergence = !isUpdate;
+        }
+        System.out.println("DVR ENDED");
+        stateChanger = new RouterStateChanger();
+    }
+
+    private static boolean sfUpdate(Router router) {
+        boolean temp = false;
+        for (int neighborId: router.getNeighborRouterIDs()) {
+            Router neighborRouter = routerMap.get(neighborId);
+            if (neighborRouter.getState()) {
+                temp = temp | neighborRouter.sfupdateRoutingTable(router);
             }
         }
-        */
+        return temp;
     }
 
     public static boolean update(Router router){
@@ -97,7 +119,7 @@ public class NetworkLayerServer {
     }
 
     public static synchronized void simpleDVR(int startingRouterId) {   ///TODO: Should we use routing tables of previous iteration?
-        System.out.println("DVR STARTED");
+        //System.out.println("DVR STARTED");
         if (stateChanger!=null) stateChanger.isPause = true;
         try {
             Thread.sleep(1000);
@@ -123,7 +145,7 @@ public class NetworkLayerServer {
             }
             isConvergence = !isUpdate;
         }
-        System.out.println("DVR ENDED");
+        //System.out.println("DVR ENDED");
         stateChanger = new RouterStateChanger();
     }
 
