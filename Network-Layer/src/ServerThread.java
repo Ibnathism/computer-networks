@@ -104,7 +104,7 @@ public class ServerThread implements Runnable {
         int count = 0;
 
         Router prev = s;
-        Router next = s;
+        Router next = null;
         if (!prev.getState()){
             System.out.println("Gateway Router is OFF");
             dropPacket(p);
@@ -119,13 +119,14 @@ public class ServerThread implements Runnable {
                 }
                 p.hopcount++;
                 next = NetworkLayerServer.routerMap.get(prev.getRTEntry(d.getRouterId()).getGatewayRouterId());
-                System.out.println(prev.getRouterId() + " -> " + next.getRouterId());
+
                 if (next==null || !next.getState()) {
                     dropPacket(p);
                     if (prev.getRTEntry(d.getRouterId())!=null) prev.getRTEntry(d.getRouterId()).setDistance(Constants.INFINITY);
                     applyDVR(prev.getRouterId());
                     break;
                 }
+                System.out.println(prev.getRouterId() + " -> " + next.getRouterId());
                 if (next.getRTEntry(prev.getRouterId())!=null && next.getRTEntry(prev.getRouterId()).getDistance()==Constants.INFINITY) {
                     next.getRTEntry(prev.getRouterId()).setDistance(1);
                     applyDVR(next.getRouterId());
