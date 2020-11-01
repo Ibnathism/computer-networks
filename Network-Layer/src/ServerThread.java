@@ -13,11 +13,6 @@ public class ServerThread implements Runnable {
 
     @Override
     public void run() {
-        System.out.print("Down Routers ");
-        for (Router router: NetworkLayerServer.routers) {
-            if (!router.getState()) System.out.print("  "+router.getRouterId()+",");
-        }
-        System.out.println();
         /**
          * Synchronize actions with client.
          */
@@ -75,8 +70,8 @@ public class ServerThread implements Runnable {
         return device;
     }
     void dropPacket(Packet packet) {
-        System.out.println("Packet Dropped "+packet.getMessage());
-        //networkUtility.write("Your packet dropped");
+        //System.out.println("Packet Dropped "+packet.getMessage());
+        networkUtility.write("Your packet dropped");
     }
 
 
@@ -131,8 +126,12 @@ public class ServerThread implements Runnable {
             }
         }
         //System.out.println();
-        if (tempRouterId==d.getRouterId()) System.out.println("Packet Sending Successful");
-        //networkUtility.write("Your packet sent");
+        if (tempRouterId==d.getRouterId()) {
+            //System.out.println("Packet Sending Successful");
+            networkUtility.write("Your packet has been sent");
+            return true;
+        }
+
 
 
 

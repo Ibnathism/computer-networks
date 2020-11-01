@@ -63,11 +63,9 @@ public class Client {
                     EndDevice receiver = activeClientList.get(r);
                     System.out.println("Want to send " + message+" to "+receiver.getIpAddress().getString());
                     networkUtility.write(message+"-"+receiver.getIpAddress().getString()+"-"+"NORMAL");
-                    /*s = (String) networkUtility.read();
-                    while (s==null) {
-                        s = (String) networkUtility.read();
-                        System.out.println("After sending the packet "+ s);
-                    }*/
+                    s = (String) networkUtility.read();
+                    System.out.println("After sending the packet "+ s);
+
                 }
 
                 /*if(i==20)

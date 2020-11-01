@@ -7,6 +7,7 @@ public class RouterStateChanger implements Runnable {
     public Thread thread = null;
     public static boolean islocked = false;
     public static Boolean msg = true;
+    public boolean isPause = false;
 
     public RouterStateChanger() {
         thread = new Thread(this);
@@ -17,7 +18,8 @@ public class RouterStateChanger implements Runnable {
     public void run() {
         Random random = new Random(System.currentTimeMillis());
         while (true) {
-            if (islocked) {
+            if (isPause) break;
+            /*if (islocked) {
                 try {
                     synchronized (msg) {
                         msg.wait();
@@ -25,7 +27,7 @@ public class RouterStateChanger implements Runnable {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            }
+            }*/
             double d = random.nextDouble();
             if (d < Constants.LAMBDA) {
                 revertRandomRouter();
