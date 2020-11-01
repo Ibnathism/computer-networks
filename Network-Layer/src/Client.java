@@ -15,7 +15,7 @@ public class Client {
     public static void main(String[] args) throws InterruptedException {
         NetworkUtility networkUtility = new NetworkUtility("127.0.0.1", 4444);
         System.out.println("Connected to server");
-        int totalPackets = 7;
+        int totalPackets = 3;
         int successCount = 0;
         int failureCount = 0;
 
@@ -58,6 +58,7 @@ public class Client {
                     else {
                         networkUtility.write(message+"-"+receiver.getIpAddress().getString()+"-"+Constants.NORMAL_MESSAGE);
                     }
+
                     s = (String) networkUtility.read();
                     if (s.equals(Constants.SUCCESS)) {
                         successCount++;
@@ -75,9 +76,14 @@ public class Client {
                     }
                     else System.out.println("Not Valid");
                 }
-
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             showStats(totalPackets, successCount, failureCount);
+
 
         }
 

@@ -127,7 +127,7 @@ public class NetworkLayerServer {
     }
 
     public static synchronized void simpleDVR(int startingRouterId) {   ///TODO: Should we use routing tables of previous iteration?
-        //System.out.println("DVR STARTED");
+        System.out.println("DVR STARTED");
         if (stateChanger!=null) stateChanger.isPause = true;
         try {
             Thread.sleep(1000);
@@ -153,7 +153,7 @@ public class NetworkLayerServer {
             }
             isConvergence = !isUpdate;
         }
-        //System.out.println("DVR ENDED");
+        System.out.println("DVR ENDED");
         stateChanger = new RouterStateChanger();
     }
 

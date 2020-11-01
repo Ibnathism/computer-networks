@@ -108,19 +108,17 @@ public class ServerThread implements Runnable {
         if (!prev.getState()){
             System.out.println("Gateway Router is OFF");
             dropPacket(p);
+            if (prev.getRTEntry(d.getRouterId())!=null) prev.getRTEntry(d.getRouterId()).setDistance(Constants.INFINITY);
+            applyDVR(prev.getRouterId());
         }
         else {
             do {
 
                 count++;
-                if (count>Constants.INFINITY) {
-                    dropPacket(p);
-                    break;
-                }
                 p.hopcount++;
                 next = NetworkLayerServer.routerMap.get(prev.getRTEntry(d.getRouterId()).getGatewayRouterId());
 
-                if (next==null || !next.getState()) {
+                if (next==null || !next.getState() || count>Constants.INFINITY) {
                     dropPacket(p);
                     if (prev.getRTEntry(d.getRouterId())!=null) prev.getRTEntry(d.getRouterId()).setDistance(Constants.INFINITY);
                     applyDVR(prev.getRouterId());
