@@ -174,24 +174,6 @@ public class NetworkLayerServer {
         clientInterfaces.put(gateway, value);
         deviceIDtoRouterID.put(endDevices.size(), interfacetoRouterID.get(gateway));
 
-        /*IPAddress ip = null;
-        IPAddress gateway = null;
-
-        int i = 0;
-        for (Map.Entry<IPAddress, Integer> entry : clientInterfaces.entrySet()) {
-            IPAddress key = entry.getKey();
-            Integer value = entry.getValue();
-            if(i == r) {
-                gateway = key;
-                ip = new IPAddress(gateway.getBytes()[0] + "." + gateway.getBytes()[1] + "." + gateway.getBytes()[2] + "." + (value+2));
-                value++;
-                clientInterfaces.put(key, value);
-                deviceIDtoRouterID.put(endDevices.size(), interfacetoRouterID.get(key));
-                break;
-            }
-            i++;
-        }*/
-
         EndDevice device = new EndDevice(ip, gateway, clientCount);
 
         System.out.println("Device : " + ip + "::::" + gateway);

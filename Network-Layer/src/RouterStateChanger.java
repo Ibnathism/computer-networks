@@ -16,10 +16,10 @@ public class RouterStateChanger implements Runnable {
 
     @Override
     public void run() {
-        /*Random random = new Random(System.currentTimeMillis());
+        Random random = new Random(System.currentTimeMillis());
         while (true) {
             if (isPause) break;
-            *//*if (islocked) {
+            /*if (islocked) {
                 try {
                     synchronized (msg) {
                         msg.wait();
@@ -27,7 +27,7 @@ public class RouterStateChanger implements Runnable {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            }*//*
+            }*/
             double d = random.nextDouble();
             if (d < Constants.LAMBDA) {
                 revertRandomRouter();
@@ -37,7 +37,7 @@ public class RouterStateChanger implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }*/
+        }
     }
 
     public void revertRandomRouter() {
@@ -47,7 +47,7 @@ public class RouterStateChanger implements Runnable {
         Random random = new Random(System.currentTimeMillis());
         int id = random.nextInt(NetworkLayerServer.routers.size());
         NetworkLayerServer.routers.get(id).revertState();
-        System.out.println("State Changed; Router ID: "+NetworkLayerServer.routers.get(id).getRouterId());
+        System.out.println("State Changed; Router ID: "+NetworkLayerServer.routers.get(id).getRouterId()+"  "+NetworkLayerServer.routers.get(id).getState());
 
     }
 }
