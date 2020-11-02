@@ -15,7 +15,7 @@ public class Client {
     public static void main(String[] args) throws InterruptedException {
         NetworkUtility networkUtility = new NetworkUtility("127.0.0.1", 4444);
         System.out.println("Connected to server");
-        int totalPackets = 3;
+        int totalPackets = 10;
         int successCount = 0;
         int failureCount = 0;
 

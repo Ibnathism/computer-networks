@@ -40,12 +40,12 @@ public class Router {
         /**
          * 80% Probability that the router is up
          */
-        Random random = new Random();
+        /*Random random = new Random();
         double p = random.nextDouble();
         if(p < 0.80) state = true;
-        else state = false;
+        else state = false;*/
 
-        //state = true;
+        state = true;
 
         numberOfInterfaces = interfaceAddresses.size();
     }
@@ -139,7 +139,7 @@ public class Router {
 
     public boolean sfupdateRoutingTable(Router neighbor) {
         // x = this
-        // y = this
+        // y = entry
         // z = neighbor
         boolean isChanged = false;
         double baseDistance = this.getRTEntry(neighbor.getRouterId()).getDistance();
@@ -151,12 +151,11 @@ public class Router {
                 double distNew = baseDistance + neighbourEntry.getDistance();
                 int nextHopXY = entry.getGatewayRouterId();
                 int nextHopZY = neighbourEntry.getGatewayRouterId();
-                if ((distPrev > distNew && nextHopZY==this.routerId)) {   ///TODO: How to do force update?
+                if ((distPrev > distNew && nextHopZY!=this.routerId)) {   ///TODO: How to do force update?
                     entry.setDistance(distNew);
                     entry.setGatewayRouterId(neighbor.routerId);
                     isChanged = true;
                 }
-                entry.setGatewayRouterId(neighbor.routerId);
             }
         }
         return isChanged;

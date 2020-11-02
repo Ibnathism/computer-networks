@@ -39,8 +39,8 @@ public class NetworkLayerServer {
 
         initRoutingTables(); //Initialize routing tables for all routers
 
-        //DVR(1); //Update routing table using distance vector routing until convergence
-        simpleDVR(1);
+        DVR(1); //Update routing table using distance vector routing until convergence
+        //simpleDVR(1);
 
         for (Router router: routers) {
             router.printRoutingTable();
@@ -98,9 +98,6 @@ public class NetworkLayerServer {
             isConvergence = !isUpdate;
         }
         System.out.println("DVR ENDED");
-
-
-
         stateChanger = new RouterStateChanger();
     }
 

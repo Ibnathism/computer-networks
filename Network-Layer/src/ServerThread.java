@@ -77,8 +77,8 @@ public class ServerThread implements Runnable {
     }
 
     public void applyDVR(int startingRouterID) {
-        NetworkLayerServer.simpleDVR(startingRouterID);
-        //NetworkLayerServer.DVR(startingRouterID);
+        //NetworkLayerServer.simpleDVR(startingRouterID);
+        NetworkLayerServer.DVR(startingRouterID);
     }
 
 
