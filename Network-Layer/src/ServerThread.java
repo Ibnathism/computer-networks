@@ -15,9 +15,6 @@ public class ServerThread implements Runnable {
 
     @Override
     public void run() {
-        /**
-         * Synchronize actions with client.
-         */
         networkUtility.write("End-Device-Config::" + endDevice.getDeviceID().toString() + '-' + endDevice.getIpAddress() + '-' + endDevice.getGateway());
         int active = NetworkLayerServer.endDevices.size();
         networkUtility.write(""+ active);
@@ -35,29 +32,8 @@ public class ServerThread implements Runnable {
 
             Packet packet = new Packet(message, specialMessage, endDevice.getIpAddress(), destIp);
 
-            //2. If the packet contains "SHOW_ROUTE" request, then fetch the required information
-            //and send back to client
-            if (specialMessage.equals(Constants.SHOW_ROUTE)) showRouteAndSendBack();
-
-            //3. Either send acknowledgement with number of hops or send failure message back to client
-            boolean isPacketDelivered = deliverPacket(packet);
-            if (isPacketDelivered) sendAcknowledgement();
-            else sendFailure();
+            deliverPacket(packet);
         }
-
-
-    }
-
-    private void sendFailure() {
-
-    }
-
-    private void sendAcknowledgement() {
-
-    }
-
-    void showRouteAndSendBack() {
-
     }
 
 
@@ -156,14 +132,6 @@ public class ServerThread implements Runnable {
 
         }
         return false;
-    }
-
-    public void disconnectClient(EndDevice endDevice) {
-        Integer count = NetworkLayerServer.clientInterfaces.get(endDevice.getIpAddress());
-        count--;
-        NetworkLayerServer.clientInterfaces.put(endDevice.getIpAddress(), count);
-
-        //NetworkLayerServer.endDeviceMap.remove()
     }
 
     @Override
