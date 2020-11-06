@@ -138,9 +138,6 @@ public class Router {
     }
 
     public boolean sfupdateRoutingTable(Router neighbor) {
-        // x = this
-        // y = entry
-        // z = neighbor
         boolean isChanged = false;
         double baseDistance = this.getRTEntry(neighbor.getRouterId()).getDistance();
         for (RoutingTableEntry entry : this.routingTable) {
@@ -150,8 +147,12 @@ public class Router {
                 double distPrev = entry.getDistance();
                 double distNew = baseDistance + neighbourEntry.getDistance();
                 int nextHopXY = entry.getGatewayRouterId();
+                if (nextHopXY == neighbor.routerId) {
+                    entry.setDistance(distNew);
+                    entry.setGatewayRouterId(neighbor.routerId);
+                }
                 int nextHopZY = neighbourEntry.getGatewayRouterId();
-                if ((distPrev > distNew && nextHopZY!=this.routerId)) {   ///TODO: How to do force update?
+                if ( (distPrev > distNew && nextHopZY!=this.routerId)) {   ///TODO: How to do force update?
                     entry.setDistance(distNew);
                     entry.setGatewayRouterId(neighbor.routerId);
                     isChanged = true;

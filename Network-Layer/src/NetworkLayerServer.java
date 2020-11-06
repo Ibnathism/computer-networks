@@ -70,6 +70,11 @@ public class NetworkLayerServer {
         }
     }
 
+    public static void applyDVR(int startingRouterID) {
+        //NetworkLayerServer.simpleDVR(startingRouterID);
+        NetworkLayerServer.DVR(startingRouterID);
+    }
+
     public static synchronized void DVR(int startingRouterId) {
         System.out.println("DVR STARTED");
         if (stateChanger!=null) stateChanger.isPause = true;

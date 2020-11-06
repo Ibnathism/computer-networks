@@ -15,14 +15,13 @@ public class Client {
     public static void main(String[] args) throws InterruptedException {
         NetworkUtility networkUtility = new NetworkUtility("127.0.0.1", 4444);
         System.out.println("Connected to server");
-        int totalPackets = 10;
-        int successCount = 0;
+        int totalPackets = 100;
+        int successCount = 1;
         int failureCount = 0;
 
         EndDevice myDevice;
         ArrayList<EndDevice> activeClientList = new ArrayList<>();
 
-        while (true) {
 
             String s = (String) networkUtility.read();
             System.out.println("Received: " + s);
@@ -45,6 +44,8 @@ public class Client {
             System.out.println("-------------------------");
             Random random = new Random(System.currentTimeMillis());
             int r;
+            int totalHopCount = 0;
+            boolean isShowRoute;
             for(int i=0;i<totalPackets;i++)
             {
                 String message = "MESSAGE" + i;
@@ -54,9 +55,11 @@ public class Client {
                     System.out.println("Want to send " + message+" to "+receiver.getIpAddress().getString());
                     if (i==20) {
                         networkUtility.write(message+"-"+receiver.getIpAddress().getString()+"-"+Constants.SHOW_ROUTE);
+                        isShowRoute = true;
                     }
                     else {
                         networkUtility.write(message+"-"+receiver.getIpAddress().getString()+"-"+Constants.NORMAL_MESSAGE);
+                        isShowRoute = false;
                     }
 
                     s = (String) networkUtility.read();
@@ -66,8 +69,11 @@ public class Client {
                         String str = (String) networkUtility.read();
                         String[] outputs = str.split(":");
                         System.out.println(outputs[0]);
-                        System.out.println(outputs[1]);
-                        System.out.println(outputs[2]);
+                        totalHopCount = totalHopCount + Integer.parseInt(outputs[0].split("=")[1]);
+                        if (isShowRoute) {
+                            System.out.println(outputs[1]);
+                            System.out.println(outputs[2]);
+                        }
                     }
                     else if (s.equals(Constants.FAILURE)) {
                         failureCount++;
@@ -81,17 +87,24 @@ public class Client {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
             }
-            showStats(totalPackets, successCount, failureCount);
+        showStats(totalPackets, successCount, failureCount, totalHopCount);
+            while (true);
 
 
-        }
+
+
 
     }
 
 
-    private static void showStats(int total, int success, int failure) {
+    private static void showStats(int total, int success, int failure, int hopCount) {
 
+        double dropRate = ((failure*1.0)/total)*100;
+        double avgHops = ((hopCount*1.0)/success);
+        System.out.println("Drop Rate : "+dropRate+"%");
+        System.out.println("Average Hops : "+avgHops);
 
     }
 }

@@ -76,10 +76,7 @@ public class ServerThread implements Runnable {
         networkUtility.write(Constants.FAILURE);
     }
 
-    public void applyDVR(int startingRouterID) {
-        //NetworkLayerServer.simpleDVR(startingRouterID);
-        NetworkLayerServer.DVR(startingRouterID);
-    }
+
 
 
     public Boolean deliverPacket(Packet p) {
@@ -108,7 +105,7 @@ public class ServerThread implements Runnable {
             System.out.println("Gateway Router is OFF");
             dropPacket(p);
             if (prev.getRTEntry(d.getRouterId())!=null) prev.getRTEntry(d.getRouterId()).setDistance(Constants.INFINITY);
-            applyDVR(prev.getRouterId());
+            NetworkLayerServer.applyDVR(prev.getRouterId());
         }
         else {
             do {
@@ -119,13 +116,13 @@ public class ServerThread implements Runnable {
                     //if (next!=null) System.out.println(prev.getRouterId() + " -> "+next.getRouterId());
                     dropPacket(p);
                     if (prev.getRTEntry(d.getRouterId())!=null) prev.getRTEntry(d.getRouterId()).setDistance(Constants.INFINITY);
-                    applyDVR(prev.getRouterId());
+                    NetworkLayerServer.applyDVR(prev.getRouterId());
                     break;
                 }
                 System.out.println(prev.getRouterId() + " -> "+next.getRouterId());
                 if (next.getRTEntry(prev.getRouterId())!=null && next.getRTEntry(prev.getRouterId()).getDistance()==Constants.INFINITY) {
                     next.getRTEntry(prev.getRouterId()).setDistance(1);
-                    applyDVR(next.getRouterId());
+                    NetworkLayerServer.applyDVR(next.getRouterId());
                 }
                 hops.add(prev);
                 prev = next;
@@ -139,7 +136,7 @@ public class ServerThread implements Runnable {
                 //System.out.println("Packet Sending Successful");
                 networkUtility.write(Constants.SUCCESS);
                 System.out.println("HOPS "+ p.hopcount);
-                hopString.append("Hop Count ").append(p.hopcount).append(":").append("PATH ");
+                hopString.append("Hop Count=").append(p.hopcount).append(":").append("PATH ");
                 for (Router router: hops) {
                     System.out.print("-> " + router.getRouterId());
                     hopString.append(router.getRouterId()).append("-");
