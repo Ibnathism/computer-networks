@@ -40,12 +40,12 @@ public class Router {
         /**
          * 80% Probability that the router is up
          */
-        Random random = new Random();
+        /*Random random = new Random();
         double p = random.nextDouble();
         if(p < 0.80) state = true;
-        else state = false;
+        else state = false;*/
 
-        //state = true;
+        state = true;
 
         numberOfInterfaces = interfaceAddresses.size();
     }

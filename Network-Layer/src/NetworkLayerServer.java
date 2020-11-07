@@ -103,7 +103,7 @@ public class NetworkLayerServer {
             isConvergence = !isUpdate;
         }
         System.out.println("DVR ENDED");
-        stateChanger = new RouterStateChanger();
+        //stateChanger = new RouterStateChanger();
     }
 
     private static boolean sfUpdate(Router router) {
@@ -156,7 +156,7 @@ public class NetworkLayerServer {
             isConvergence = !isUpdate;
         }
         System.out.println("DVR ENDED");
-        stateChanger = new RouterStateChanger();
+        //stateChanger = new RouterStateChanger();
     }
 
     public static EndDevice getClientDeviceSetup() {
