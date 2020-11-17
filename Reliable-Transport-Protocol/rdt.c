@@ -20,6 +20,12 @@
 #define BIDIRECTIONAL 0 /* change to 1 if you're doing extra credit */
 /* and write a routine called B_output */
 
+#define IN_LAYER_5 1
+#define ACK_PENDING 2
+#define INITIAL_TIME_BEFORE_TIMER_INT 10
+#define CALLING_ENTITY_A 0
+#define CALLING_ENTITY_B 1
+
 /* a "msg" is the data unit passed from layer 5 (teachers code) to layer  */
 /* 4 (students' code).  It contains the data (characters) to be delivered */
 /* to layer 5 via the students transport level protocol entities.         */
@@ -39,6 +45,19 @@ struct pkt
     char payload[20];
 };
 
+struct DeliveryEnd
+{
+    struct pkt my_packet;
+    int my_seqnum;
+    int state;
+    float time_before_timer_interrupt;
+} sending_side;
+
+struct ReceivingEnd
+{
+    int my_seqnum;
+} receiving_side;
+
 /********* FUNCTION PROTOTYPES. DEFINED IN THE LATER PART******************/
 void starttimer(int AorB, float increment);
 void stoptimer(int AorB);
@@ -47,35 +66,68 @@ void tolayer5(int AorB, char datasent[20]);
 
 /********* STUDENTS WRITE THE NEXT SEVEN ROUTINES *********/
 
+struct pkt get_packet(struct msg message)
+{
+    struct pkt temp_pkt;
+    temp_pkt.seqnum = sending_side.my_seqnum;
+    for (size_t i = 0; i < 20; i++)
+    {
+        temp_pkt.payload[i] = message.data[i];
+    }
+    return temp_pkt;
+}
+
 /* called from layer 5, passed the data to be sent to other side */
 void A_output(struct msg message)
 {
-
+    if (sending_side.state == IN_LAYER_5)
+    {
+        printf("Inside method A_output. State: IN_LAYER_5\n");
+        sending_side.state = ACK_PENDING;
+        struct pkt pkt_to_send = get_packet(message);
+        sending_side.my_packet = pkt_to_send;
+        //printf("sending_side seqnum %d   Packet %d \n", sending_side.my_seqnum, pkt_to_send.seqnum);
+        tolayer3(CALLING_ENTITY_A, pkt_to_send);
+        starttimer(CALLING_ENTITY_A, sending_side.time_before_timer_interrupt);
+    }
+    else
+    {
+        printf("Inside method A_output. State: ACK_PENDING\n\n");
+    }
 }
 
 /* need be completed only for extra credit */
 void B_output(struct msg message)
 {
-
 }
 
 /* called from layer 3, when a packet arrives for layer 4 */
 void A_input(struct pkt packet)
 {
-
 }
 
 /* called when A's timer goes off */
 void A_timerinterrupt(void)
 {
-
+    if (sending_side.state == ACK_PENDING)
+    {
+        printf("Inside A_timerinterrupt ------ State: ACK_PENDING ----- Message: %s\n", sending_side.my_packet.payload);
+        tolayer3(CALLING_ENTITY_A, sending_side.my_packet);
+        starttimer(CALLING_ENTITY_A, sending_side.time_before_timer_interrupt);
+    }
+    else
+    {
+        printf("State NOT PENDING ACK, NO idea what is going on\n");
+    }
 }
 
 /* the following routine will be called once (only) before any other */
 /* entity A routines are called. You can use it to do any initialization */
 void A_init(void)
 {
-
+    sending_side.time_before_timer_interrupt = INITIAL_TIME_BEFORE_TIMER_INT;
+    sending_side.state = IN_LAYER_5;
+    sending_side.my_seqnum = 0;
 }
 
 /* Note that with simplex transfer from a-to-B, there is no B_output() */
@@ -83,7 +135,6 @@ void A_init(void)
 /* called from layer 3, when a packet arrives for layer 4 at B*/
 void B_input(struct pkt packet)
 {
-
 }
 
 /* called when B's timer goes off */
@@ -96,7 +147,7 @@ void B_timerinterrupt(void)
 /* entity B routines are called. You can use it to do any initialization */
 void B_init(void)
 {
-
+    receiving_side.my_seqnum = 0;
 }
 
 /*****************************************************************
@@ -136,9 +187,9 @@ struct event *evlist = NULL; /* the event list */
 #define A 0
 #define B 1
 
-int TRACE = 1;     /* for my debugging */
-int nsim = 0;      /* number of messages from 5 to 4 so far */
-int nsimmax = 0;   /* number of msgs to generate, then stop */
+int TRACE = 1;   /* for my debugging */
+int nsim = 0;    /* number of messages from 5 to 4 so far */
+int nsimmax = 0; /* number of msgs to generate, then stop */
 float time = 0.000;
 float lossprob;    /* probability that a packet is dropped  */
 float corruptprob; /* probability that one bit is packet is flipped */
@@ -218,7 +269,7 @@ int main()
             for (i = 0; i < 20; i++)
                 pkt2give.payload[i] = eventptr->pktptr->payload[i];
             if (eventptr->eventity == A) /* deliver packet by calling */
-                A_input(pkt2give); /* appropriate entity */
+                A_input(pkt2give);       /* appropriate entity */
             else
                 B_input(pkt2give);
             free(eventptr->pktptr); /* free the memory for packet */
@@ -251,15 +302,15 @@ void init() /* initialize the simulator */
 
     printf("-----  Stop and Wait Network Simulator Version 1.1 -------- \n\n");
     printf("Enter the number of messages to simulate: ");
-    scanf("%d",&nsimmax);
+    scanf("%d", &nsimmax);
     printf("Enter  packet loss probability [enter 0.0 for no loss]:");
-    scanf("%f",&lossprob);
+    scanf("%f", &lossprob);
     printf("Enter packet corruption probability [0.0 for no corruption]:");
-    scanf("%f",&corruptprob);
+    scanf("%f", &corruptprob);
     printf("Enter average time between messages from sender's layer5 [ > 0.0]:");
-    scanf("%f",&lambda);
+    scanf("%f", &lambda);
     printf("Enter TRACE:");
-    scanf("%d",&TRACE);
+    scanf("%d", &TRACE);
 
     srand(9999); /* init random number generator */
     sum = 0.0;   /* test random number generator for students */
@@ -290,8 +341,8 @@ void init() /* initialize the simulator */
 float jimsrand(void)
 {
     double mmm = RAND_MAX;
-    float x;                 /* individual students may need to change mmm */
-    x = rand() / mmm;        /* x should be uniform in [0,1] */
+    float x;          /* individual students may need to change mmm */
+    x = rand() / mmm; /* x should be uniform in [0,1] */
     return (x);
 }
 
@@ -330,8 +381,8 @@ void insertevent(struct event *p)
         printf("            INSERTEVENT: time is %lf\n", time);
         printf("            INSERTEVENT: future time will be %lf\n", p->evtime);
     }
-    q = evlist;      /* q points to header of list in which p struct inserted */
-    if (q == NULL)   /* list is empty */
+    q = evlist;    /* q points to header of list in which p struct inserted */
+    if (q == NULL) /* list is empty */
     {
         evlist = p;
         p->next = NULL;
@@ -341,20 +392,20 @@ void insertevent(struct event *p)
     {
         for (qold = q; q != NULL && p->evtime > q->evtime; q = q->next)
             qold = q;
-        if (q == NULL)   /* end of list */
+        if (q == NULL) /* end of list */
         {
             qold->next = p;
             p->prev = qold;
             p->next = NULL;
         }
-        else if (q == evlist)     /* front of list */
+        else if (q == evlist) /* front of list */
         {
             p->next = evlist;
             p->prev = NULL;
             p->next->prev = p;
             evlist = p;
         }
-        else     /* middle of list */
+        else /* middle of list */
         {
             p->next = q;
             p->prev = q->prev;
@@ -392,15 +443,15 @@ void stoptimer(int AorB /* A or B is trying to stop timer */)
         {
             /* remove this event */
             if (q->next == NULL && q->prev == NULL)
-                evlist = NULL;          /* remove first and only event on list */
+                evlist = NULL;        /* remove first and only event on list */
             else if (q->next == NULL) /* end of list - there is one in front */
                 q->prev->next = NULL;
-            else if (q == evlist)   /* front of list - there must be event after */
+            else if (q == evlist) /* front of list - there must be event after */
             {
                 q->next->prev = NULL;
                 evlist = q->next;
             }
-            else     /* middle of list */
+            else /* middle of list */
             {
                 q->next->prev = q->prev;
                 q->prev->next = q->next;
