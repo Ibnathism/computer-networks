@@ -45,18 +45,11 @@ struct pkt
     char payload[20];
 };
 
-struct DeliveryEnd
-{
-    struct pkt my_packet;
-    int my_seqnum;
-    int state;
-    float time_before_timer_interrupt;
-} sending_side;
-
-struct ReceivingEnd
-{
-    int my_seqnum;
-} receiving_side;
+struct pkt A_packet;
+int A_seqnum;
+int A_state;
+float A_time;
+int B_seqnum;
 
 /********* FUNCTION PROTOTYPES. DEFINED IN THE LATER PART******************/
 void starttimer(int AorB, float increment);
@@ -69,7 +62,7 @@ void tolayer5(int AorB, char datasent[20]);
 struct pkt get_packet(struct msg message)
 {
     struct pkt temp_pkt;
-    temp_pkt.seqnum = sending_side.my_seqnum;
+    temp_pkt.seqnum = A_seqnum;
     for (size_t i = 0; i < 20; i++)
     {
         temp_pkt.payload[i] = message.data[i];
@@ -80,15 +73,15 @@ struct pkt get_packet(struct msg message)
 /* called from layer 5, passed the data to be sent to other side */
 void A_output(struct msg message)
 {
-    if (sending_side.state == IN_LAYER_5)
+    if (A_state == IN_LAYER_5)
     {
         printf("Inside method A_output. State: IN_LAYER_5\n");
-        sending_side.state = ACK_PENDING;
+        A_state = ACK_PENDING;
         struct pkt pkt_to_send = get_packet(message);
-        sending_side.my_packet = pkt_to_send;
-        //printf("sending_side seqnum %d   Packet %d \n", sending_side.my_seqnum, pkt_to_send.seqnum);
+        A_packet = pkt_to_send;
+        //printf("sending_side seqnum %d   Packet %d \n", A_seqnum, pkt_to_send.seqnum);
         tolayer3(CALLING_ENTITY_A, pkt_to_send);
-        starttimer(CALLING_ENTITY_A, sending_side.time_before_timer_interrupt);
+        starttimer(CALLING_ENTITY_A, A_time);
     }
     else
     {
@@ -109,11 +102,11 @@ void A_input(struct pkt packet)
 /* called when A's timer goes off */
 void A_timerinterrupt(void)
 {
-    if (sending_side.state == ACK_PENDING)
+    if (A_state == ACK_PENDING)
     {
-        printf("Inside A_timerinterrupt ------ State: ACK_PENDING ----- Message: %s\n", sending_side.my_packet.payload);
-        tolayer3(CALLING_ENTITY_A, sending_side.my_packet);
-        starttimer(CALLING_ENTITY_A, sending_side.time_before_timer_interrupt);
+        printf("Inside A_timerinterrupt ------ State: ACK_PENDING ----- Message: %s\n", A_packet.payload);
+        tolayer3(CALLING_ENTITY_A, A_packet);
+        starttimer(CALLING_ENTITY_A, A_time);
     }
     else
     {
@@ -125,9 +118,9 @@ void A_timerinterrupt(void)
 /* entity A routines are called. You can use it to do any initialization */
 void A_init(void)
 {
-    sending_side.time_before_timer_interrupt = INITIAL_TIME_BEFORE_TIMER_INT;
-    sending_side.state = IN_LAYER_5;
-    sending_side.my_seqnum = 0;
+    A_time = INITIAL_TIME_BEFORE_TIMER_INT;
+    A_state = IN_LAYER_5;
+    A_seqnum = 0;
 }
 
 /* Note that with simplex transfer from a-to-B, there is no B_output() */
@@ -147,7 +140,7 @@ void B_timerinterrupt(void)
 /* entity B routines are called. You can use it to do any initialization */
 void B_init(void)
 {
-    receiving_side.my_seqnum = 0;
+    B_seqnum = 0;
 }
 
 /*****************************************************************
