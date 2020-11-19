@@ -22,7 +22,7 @@
 
 #define IN_LAYER_5 1
 #define ACK_PENDING 2
-#define INITIAL_TIME_BEFORE_TIMER_INT 10
+#define INITIAL_TIME_BEFORE_TIMER_INT 100
 #define CALLING_ENTITY_A 0
 #define CALLING_ENTITY_B 1
 
@@ -59,14 +59,26 @@ void tolayer5(int AorB, char datasent[20]);
 
 /********* STUDENTS WRITE THE NEXT SEVEN ROUTINES *********/
 
+int find_checksum(int seqnum, int acknum, char *payload)
+{
+    int cs = 0;
+    cs = cs + seqnum + acknum;
+    for (int i = 0; i < 20; i++)
+    {
+        cs = cs + payload[i];
+    }
+    return cs;
+}
+
 struct pkt get_packet(struct msg message)
 {
     struct pkt temp_pkt;
     temp_pkt.seqnum = A_seqnum;
-    for (size_t i = 0; i < 20; i++)
+    for (int i = 0; i < 20; i++)
     {
         temp_pkt.payload[i] = message.data[i];
     }
+    temp_pkt.checksum = find_checksum(temp_pkt.seqnum, temp_pkt.acknum, temp_pkt.payload);
     return temp_pkt;
 }
 
@@ -79,7 +91,7 @@ void A_output(struct msg message)
         A_state = ACK_PENDING;
         struct pkt pkt_to_send = get_packet(message);
         A_packet = pkt_to_send;
-        //printf("sending_side seqnum %d   Packet %d \n", A_seqnum, pkt_to_send.seqnum);
+        printf("sending_side seqnum %d   Packet %d \n", A_seqnum, pkt_to_send.seqnum);
         tolayer3(CALLING_ENTITY_A, pkt_to_send);
         starttimer(CALLING_ENTITY_A, A_time);
     }
@@ -97,6 +109,25 @@ void B_output(struct msg message)
 /* called from layer 3, when a packet arrives for layer 4 */
 void A_input(struct pkt packet)
 {
+    if (A_state != ACK_PENDING)
+    {
+        printf("  A_input: A->B only. drop.\n");
+        return;
+    }
+    if (packet.checksum != find_checksum(packet.seqnum, packet.acknum, packet.payload))
+    {
+        printf("  A_input: packet corrupted. drop.\n");
+        return;
+    }
+    if (packet.acknum != A_seqnum)
+    {
+        printf("  A_input: not the expected ACK. drop.\n");
+        return;
+    }
+    printf("  A_input: acked.\n");
+    stoptimer(CALLING_ENTITY_A);
+    A_seqnum = 1 - A_seqnum;
+    A_state = IN_LAYER_5;
 }
 
 /* called when A's timer goes off */
@@ -124,10 +155,34 @@ void A_init(void)
 }
 
 /* Note that with simplex transfer from a-to-B, there is no B_output() */
+void send_ack(int AorB, int ack)
+{
+    struct pkt packet;
+    packet.acknum = ack;
+    packet.checksum = find_checksum(packet.seqnum, packet.acknum, packet.payload);
+    tolayer3(AorB, packet);
+}
 
 /* called from layer 3, when a packet arrives for layer 4 at B*/
 void B_input(struct pkt packet)
 {
+    if (packet.checksum != find_checksum(packet.seqnum, packet.acknum, packet.payload))
+    {
+        printf("  B_input: packet corrupted. send NAK.\n");
+        send_ack(1, 1 - B_seqnum);
+        return;
+    }
+    if (packet.seqnum != B_seqnum)
+    {
+        printf("  B_input: not the expected seq. send NAK.\n");
+        send_ack(1, 1 - B_seqnum);
+        return;
+    }
+    printf("  B_input: recv message: %s\n", packet.payload);
+    printf("  B_input: send ACK.\n");
+    send_ack(1, B_seqnum);
+    tolayer5(1, packet.payload);
+    B_seqnum = 1 - B_seqnum;
 }
 
 /* called when B's timer goes off */
