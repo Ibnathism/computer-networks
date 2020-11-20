@@ -61,8 +61,7 @@ void tolayer5(int AorB, char datasent[20]);
 
 int find_checksum(int seqnum, int acknum, char *payload)
 {
-    int cs = 0;
-    cs = cs + seqnum + acknum;
+    int cs = seqnum + acknum;
     for (int i = 0; i < 20; i++)
     {
         cs = cs + payload[i];
@@ -155,34 +154,34 @@ void A_init(void)
 }
 
 /* Note that with simplex transfer from a-to-B, there is no B_output() */
-void send_ack(int AorB, int ack)
+void acknowledgement_message_to_A(int ack)
 {
     struct pkt packet;
     packet.acknum = ack;
     packet.checksum = find_checksum(packet.seqnum, packet.acknum, packet.payload);
-    tolayer3(AorB, packet);
+    tolayer3(CALLING_ENTITY_B, packet);
 }
 
 /* called from layer 3, when a packet arrives for layer 4 at B*/
 void B_input(struct pkt packet)
 {
-    if (packet.checksum != find_checksum(packet.seqnum, packet.acknum, packet.payload))
+    int temp_cs = find_checksum(packet.seqnum, packet.acknum, packet.payload);
+    int B_new_seqnum = 1 - B_seqnum;
+    if (packet.checksum != temp_cs)
     {
-        printf("  B_input: packet corrupted. send NAK.\n");
-        send_ack(1, 1 - B_seqnum);
+        acknowledgement_message_to_A(B_new_seqnum);
         return;
     }
     if (packet.seqnum != B_seqnum)
     {
-        printf("  B_input: not the expected seq. send NAK.\n");
-        send_ack(1, 1 - B_seqnum);
+        acknowledgement_message_to_A(B_new_seqnum);
         return;
     }
-    printf("  B_input: recv message: %s\n", packet.payload);
-    printf("  B_input: send ACK.\n");
-    send_ack(1, B_seqnum);
-    tolayer5(1, packet.payload);
-    B_seqnum = 1 - B_seqnum;
+    //printf("  B_input: recv message: %s\n", packet.payload);
+    //printf("  B_input: send ACK.\n");
+    acknowledgement_message_to_A(B_seqnum);
+    tolayer5(CALLING_ENTITY_B, packet.payload);
+    B_seqnum = B_new_seqnum;
 }
 
 /* called when B's timer goes off */
