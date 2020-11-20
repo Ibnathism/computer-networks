@@ -69,6 +69,15 @@ int find_checksum(int seqnum, int acknum, char *payload)
     return cs;
 }
 
+void acknowledgement_message_to_A(int ack)
+{
+    struct pkt temp_pkt;
+    temp_pkt.acknum = ack;
+    temp_pkt.checksum = find_checksum(temp_pkt.seqnum, temp_pkt.acknum, temp_pkt.payload);
+
+    tolayer3(CALLING_ENTITY_B, temp_pkt);
+}
+
 struct pkt get_packet(struct msg message)
 {
     struct pkt temp_pkt;
@@ -108,19 +117,23 @@ void B_output(struct msg message)
 /* called from layer 3, when a packet arrives for layer 4 */
 void A_input(struct pkt packet)
 {
-    if (A_state != ACK_PENDING)
+    int temp_cs = find_checksum(packet.seqnum, packet.acknum, packet.payload);
+    if (A_state != ACK_PENDING || packet.acknum != A_seqnum || packet.checksum != temp_cs)
     {
-        printf("  A_input: A->B only. drop.\n");
-        return;
-    }
-    if (packet.checksum != find_checksum(packet.seqnum, packet.acknum, packet.payload))
-    {
-        printf("  A_input: packet corrupted. drop.\n");
-        return;
-    }
-    if (packet.acknum != A_seqnum)
-    {
-        printf("  A_input: not the expected ACK. drop.\n");
+        if (A_state != ACK_PENDING)
+        {
+            printf("  A_input: A->B only. drop.\n");
+        }
+        if (packet.acknum != A_seqnum)
+        {
+            printf("  A_input: not the expected ACK. drop.\n");
+        }
+        if (packet.checksum != temp_cs)
+        {
+            printf("original  %d  calculated %d", packet.checksum, temp_cs);
+            printf("  A_input: packet corrupted. drop.\n");
+        }
+
         return;
     }
     printf("  A_input: acked.\n");
@@ -148,31 +161,19 @@ void A_timerinterrupt(void)
 /* entity A routines are called. You can use it to do any initialization */
 void A_init(void)
 {
-    A_time = INITIAL_TIME_BEFORE_TIMER_INT;
     A_state = IN_LAYER_5;
     A_seqnum = 0;
+    A_time = INITIAL_TIME_BEFORE_TIMER_INT;
 }
 
 /* Note that with simplex transfer from a-to-B, there is no B_output() */
-void acknowledgement_message_to_A(int ack)
-{
-    struct pkt packet;
-    packet.acknum = ack;
-    packet.checksum = find_checksum(packet.seqnum, packet.acknum, packet.payload);
-    tolayer3(CALLING_ENTITY_B, packet);
-}
 
 /* called from layer 3, when a packet arrives for layer 4 at B*/
 void B_input(struct pkt packet)
 {
     int temp_cs = find_checksum(packet.seqnum, packet.acknum, packet.payload);
     int B_new_seqnum = 1 - B_seqnum;
-    if (packet.checksum != temp_cs)
-    {
-        acknowledgement_message_to_A(B_new_seqnum);
-        return;
-    }
-    if (packet.seqnum != B_seqnum)
+    if (packet.checksum != temp_cs || packet.seqnum != B_seqnum)
     {
         acknowledgement_message_to_A(B_new_seqnum);
         return;
