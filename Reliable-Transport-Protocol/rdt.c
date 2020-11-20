@@ -22,7 +22,7 @@
 
 #define IN_LAYER_5 1
 #define ACK_PENDING 2
-#define INITIAL_TIME_BEFORE_TIMER_INT 100
+#define TIME_BEFORE_TIMER_INT 30
 #define CALLING_ENTITY_A 0
 #define CALLING_ENTITY_B 1
 
@@ -46,10 +46,9 @@ struct pkt
 };
 
 struct pkt A_packet;
-int A_seqnum;
+int A_sequence_number;
+int B_sequence_number;
 int A_state;
-float A_time;
-int B_seqnum;
 
 /********* FUNCTION PROTOTYPES. DEFINED IN THE LATER PART******************/
 void starttimer(int AorB, float increment);
@@ -58,6 +57,129 @@ void tolayer3(int AorB, struct pkt packet);
 void tolayer5(int AorB, char datasent[20]);
 
 /********* STUDENTS WRITE THE NEXT SEVEN ROUTINES *********/
+struct pkt get_packet(struct msg message);
+int find_checksum(int seqnum, int acknum, char *payload);
+void acknowledgement_message_to_A(int acknowledgement_code);
+void printPacket(struct pkt packet);
+
+/* called from layer 5, passed the data to be sent to other side */
+void A_output(struct msg message)
+{
+    printf("\n\n----------- Inside A_output -----------\n");
+    if (A_state == IN_LAYER_5)
+    {
+        printf("\nA is in layer 5 state\n");
+        A_state = ACK_PENDING;
+        A_packet = get_packet(message);
+        printf("\nA is sending a packet to Layer3 and Waiting for acknowledgement\n");
+        printPacket(A_packet);
+        tolayer3(CALLING_ENTITY_A, A_packet);
+        starttimer(CALLING_ENTITY_A, TIME_BEFORE_TIMER_INT);
+    }
+    else
+    {
+        printf("\nA is waiting for acknowledgement\n");
+    }
+}
+
+/* need be completed only for extra credit */
+void B_output(struct msg message)
+{
+    printf("\n----------- B_output :::::::: Not Used -----------\n");
+}
+
+/* called from layer 3, when a packet arrives for layer 4 */
+void A_input(struct pkt packet)
+{
+    printf("\n\n----------- Inside A_input -----------\n");
+    int temp_cs = find_checksum(packet.seqnum, packet.acknum, packet.payload);
+    if (A_sequence_number != packet.acknum)
+    {
+        printf("\n----------Expected Acknowledgement: %d---------Found: %d-----------\n", A_sequence_number, packet.acknum);
+        return;
+    }
+    if (A_state != ACK_PENDING)
+    {
+        printf("\n---------A is not waiting for any acknowledgement----------\n");
+        return;
+    }
+    if (temp_cs != packet.checksum)
+    {
+        printf("\n-------Checksum doesn't match-----Packet Corruption-------\n");
+        return;
+    }
+    printf("\nA got proper acknowledgement:::::Acknum: %d::::: Message: %s\n", packet.acknum, A_packet.payload);
+    //printPacket(packet);
+    printf("\nA is stopping timer and going back to non waiting state\n");
+    stoptimer(CALLING_ENTITY_A);
+    A_sequence_number = 1 - A_sequence_number;
+    A_state = IN_LAYER_5;
+}
+
+/* called when A's timer goes off */
+void A_timerinterrupt(void)
+{
+    printf("\n\n----------- Inside A_timerinterrupt -----------\n");
+    if (A_state == ACK_PENDING)
+    {
+        printf("\n------ State: ACK_PENDING ------- A is sending the last packet again to layer 3-----\n");
+        //printPacket(A_packet);
+        tolayer3(CALLING_ENTITY_A, A_packet);
+        starttimer(CALLING_ENTITY_A, TIME_BEFORE_TIMER_INT);
+    }
+    else
+    {
+        printf("\n------ State: A not waiting for any acknowledgement -----\n");
+    }
+}
+
+/* the following routine will be called once (only) before any other */
+/* entity A routines are called. You can use it to do any initialization */
+void A_init(void)
+{
+    printf("\n----------- Initializing A -----------\n");
+    A_state = IN_LAYER_5;
+    A_sequence_number = 0;
+}
+
+/* Note that with simplex transfer from a-to-B, there is no B_output() */
+/* called from layer 3, when a packet arrives for layer 4 at B*/
+void B_input(struct pkt packet)
+{
+    printf("\n\n----------- Inside B_input -----------\n");
+    printPacket(packet);
+    int temp_cs = find_checksum(packet.seqnum, packet.acknum, packet.payload);
+    int acknowledgement_code = 1 - B_sequence_number;
+    if (temp_cs != packet.checksum || packet.seqnum != B_sequence_number)
+    {
+        if (temp_cs != packet.checksum)
+            printf("\n-------Checksum doesn't match-----Packet Corruption-------\n");
+        if (packet.seqnum != B_sequence_number)
+            printf("\n-------Sequence number doesn't match-------- Wanted: %d------Found: %d\n", B_sequence_number, packet.seqnum);
+        printf("\nB is sending NACK by alternating the acknowledgement number::::Packet acknum: %d\n", acknowledgement_code);
+        acknowledgement_message_to_A(acknowledgement_code);
+        return;
+    }
+    printf("\nB is sending proper acknowledgement to A and sending the packet to layer 5\n");
+    //printPacket(packet);
+    acknowledgement_message_to_A(B_sequence_number);
+    tolayer5(CALLING_ENTITY_B, packet.payload);
+    B_sequence_number = acknowledgement_code;
+}
+
+/* called when B's timer goes off */
+void B_timerinterrupt(void)
+{
+    printf("\n----------- B_timerinterrupt :::::::: Not Used -----------\n");
+}
+
+/* the following rouytine will be called once (only) before any other */
+/* entity B routines are called. You can use it to do any initialization */
+void B_init(void)
+{
+    printf("\n\n----------- Initializing B -----------\n");
+    B_sequence_number = 0;
+}
 
 int find_checksum(int seqnum, int acknum, char *payload)
 {
@@ -69,19 +191,18 @@ int find_checksum(int seqnum, int acknum, char *payload)
     return cs;
 }
 
-void acknowledgement_message_to_A(int ack)
+void acknowledgement_message_to_A(int acknowledgement_code)
 {
     struct pkt temp_pkt;
-    temp_pkt.acknum = ack;
+    temp_pkt.acknum = acknowledgement_code;
     temp_pkt.checksum = find_checksum(temp_pkt.seqnum, temp_pkt.acknum, temp_pkt.payload);
-
     tolayer3(CALLING_ENTITY_B, temp_pkt);
 }
 
 struct pkt get_packet(struct msg message)
 {
     struct pkt temp_pkt;
-    temp_pkt.seqnum = A_seqnum;
+    temp_pkt.seqnum = A_sequence_number;
     for (int i = 0; i < 20; i++)
     {
         temp_pkt.payload[i] = message.data[i];
@@ -90,112 +211,10 @@ struct pkt get_packet(struct msg message)
     return temp_pkt;
 }
 
-/* called from layer 5, passed the data to be sent to other side */
-void A_output(struct msg message)
+void printPacket(struct pkt packet)
 {
-    if (A_state == IN_LAYER_5)
-    {
-        printf("Inside method A_output. State: IN_LAYER_5\n");
-        A_state = ACK_PENDING;
-        struct pkt pkt_to_send = get_packet(message);
-        A_packet = pkt_to_send;
-        printf("sending_side seqnum %d   Packet %d \n", A_seqnum, pkt_to_send.seqnum);
-        tolayer3(CALLING_ENTITY_A, pkt_to_send);
-        starttimer(CALLING_ENTITY_A, A_time);
-    }
-    else
-    {
-        printf("Inside method A_output. State: ACK_PENDING\n\n");
-    }
-}
-
-/* need be completed only for extra credit */
-void B_output(struct msg message)
-{
-}
-
-/* called from layer 3, when a packet arrives for layer 4 */
-void A_input(struct pkt packet)
-{
-    int temp_cs = find_checksum(packet.seqnum, packet.acknum, packet.payload);
-    if (A_state != ACK_PENDING || packet.acknum != A_seqnum || packet.checksum != temp_cs)
-    {
-        if (A_state != ACK_PENDING)
-        {
-            printf("  A_input: A->B only. drop.\n");
-        }
-        if (packet.acknum != A_seqnum)
-        {
-            printf("  A_input: not the expected ACK. drop.\n");
-        }
-        if (packet.checksum != temp_cs)
-        {
-            printf("original  %d  calculated %d", packet.checksum, temp_cs);
-            printf("  A_input: packet corrupted. drop.\n");
-        }
-
-        return;
-    }
-    printf("  A_input: acked.\n");
-    stoptimer(CALLING_ENTITY_A);
-    A_seqnum = 1 - A_seqnum;
-    A_state = IN_LAYER_5;
-}
-
-/* called when A's timer goes off */
-void A_timerinterrupt(void)
-{
-    if (A_state == ACK_PENDING)
-    {
-        printf("Inside A_timerinterrupt ------ State: ACK_PENDING ----- Message: %s\n", A_packet.payload);
-        tolayer3(CALLING_ENTITY_A, A_packet);
-        starttimer(CALLING_ENTITY_A, A_time);
-    }
-    else
-    {
-        printf("State NOT PENDING ACK, NO idea what is going on\n");
-    }
-}
-
-/* the following routine will be called once (only) before any other */
-/* entity A routines are called. You can use it to do any initialization */
-void A_init(void)
-{
-    A_state = IN_LAYER_5;
-    A_seqnum = 0;
-    A_time = INITIAL_TIME_BEFORE_TIMER_INT;
-}
-
-/* Note that with simplex transfer from a-to-B, there is no B_output() */
-
-/* called from layer 3, when a packet arrives for layer 4 at B*/
-void B_input(struct pkt packet)
-{
-    int temp_cs = find_checksum(packet.seqnum, packet.acknum, packet.payload);
-    int B_new_seqnum = 1 - B_seqnum;
-    if (packet.checksum != temp_cs || packet.seqnum != B_seqnum)
-    {
-        acknowledgement_message_to_A(B_new_seqnum);
-        return;
-    }
-    //printf("  B_input: recv message: %s\n", packet.payload);
-    //printf("  B_input: send ACK.\n");
-    acknowledgement_message_to_A(B_seqnum);
-    tolayer5(CALLING_ENTITY_B, packet.payload);
-    B_seqnum = B_new_seqnum;
-}
-
-/* called when B's timer goes off */
-void B_timerinterrupt(void)
-{
-    printf("  B_timerinterrupt: B doesn't have a timer. ignore.\n");
-}
-
-/* the following rouytine will be called once (only) before any other */
-/* entity B routines are called. You can use it to do any initialization */
-void B_init(void)
-{
-    B_seqnum = 0;
+    printf("\n\n::::::: Packet ::::::::\n");
+    printf("Seqnum: %d\nAcknum: %d\nChecksum: %d\nPayload: %s\n", packet.seqnum, packet.acknum, packet.checksum, packet.payload);
 }
 
 /*****************************************************************
