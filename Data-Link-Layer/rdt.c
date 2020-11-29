@@ -55,7 +55,7 @@ int A_state;
 /********* FUNCTION PROTOTYPES. DEFINED IN THE LATER PART******************/
 void starttimer(int AorB, float increment);
 void stoptimer(int AorB);
-void tolayer3(int AorB, struct frm frame);
+void tolayer1(int AorB, struct frm frame);
 void tolayer5(int AorB, char datasent[20]);
 
 /********* STUDENTS WRITE THE NEXT SEVEN ROUTINES *********/
@@ -73,9 +73,9 @@ void A_output(struct pkt packet)
         printf("\nA is in layer 5 state\n");
         A_state = ACK_PENDING;
         A_frame = get_frame(packet);
-        printf("\nA is sending a frame to Layer3 and Waiting for acknowledgement\n");
+        printf("\nA is sending a frame to Layer1 and Waiting for acknowledgement\n");
         print_frame(A_frame);
-        tolayer3(CALLING_ENTITY_A, A_frame);
+        tolayer1(CALLING_ENTITY_A, A_frame);
         starttimer(CALLING_ENTITY_A, TIME_BEFORE_TIMER_INT);
     }
     else
@@ -124,9 +124,9 @@ void A_timerinterrupt(void)
     printf("\n\n----------- Inside A_timerinterrupt -----------\n");
     if (A_state == ACK_PENDING)
     {
-        printf("\n------ State: ACK_PENDING ------- A is sending the last frame again to layer 3-----\n");
+        printf("\n------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----\n");
         //print_frame(A_frame);
-        tolayer3(CALLING_ENTITY_A, A_frame);
+        tolayer1(CALLING_ENTITY_A, A_frame);
         starttimer(CALLING_ENTITY_A, TIME_BEFORE_TIMER_INT);
     }
     else
@@ -198,7 +198,7 @@ void acknowledgement_packet_to_A(int acknowledgement_code)
     struct frm temp_frm;
     temp_frm.acknum = acknowledgement_code;
     temp_frm.checksum = find_checksum(temp_frm.seqnum, temp_frm.acknum, temp_frm.payload);
-    tolayer3(CALLING_ENTITY_B, temp_frm);
+    tolayer1(CALLING_ENTITY_B, temp_frm);
 }
 
 struct frm get_frame(struct pkt packet)
@@ -249,7 +249,7 @@ struct event *evlist = NULL; /* the event list */
 /* possible events: */
 #define TIMER_INTERRUPT 0
 #define FROM_LAYER5 1
-#define FROM_LAYER3 2
+#define FROM_LAYER1 2
 
 #define OFF 0
 #define ON 1
@@ -263,7 +263,7 @@ float time = 0.000;
 float lossprob;    /* probability that a frame is dropped  */
 float corruptprob; /* probability that one bit is frame is flipped */
 float lambda;      /* arrival rate of packets from layer 5 */
-int ntolayer3;     /* number sent into layer 3 */
+int ntolayer1;     /* number sent into layer 3 */
 int nlost;         /* number lost in media */
 int ncorrupt;      /* number corrupted by media*/
 
@@ -301,7 +301,7 @@ int main()
             else if (eventptr->evtype == 1)
                 printf(", fromlayer5 ");
             else
-                printf(", fromlayer3 ");
+                printf(", fromlayer1 ");
             printf(" entity: %d\n", eventptr->eventity);
         }
         time = eventptr->evtime; /* update time to next event time */
@@ -330,7 +330,7 @@ int main()
                     B_output(pkt2give);
             }
         }
-        else if (eventptr->evtype == FROM_LAYER3)
+        else if (eventptr->evtype == FROM_LAYER1)
         {
             frm2give.seqnum = eventptr->frmptr->seqnum;
             frm2give.acknum = eventptr->frmptr->acknum;
@@ -394,7 +394,7 @@ void init() /* initialize the simulator */
         exit(1);
     }
 
-    ntolayer3 = 0;
+    ntolayer1 = 0;
     nlost = 0;
     ncorrupt = 0;
 
@@ -556,21 +556,21 @@ void starttimer(int AorB /* A or B is trying to start timer */, float increment)
 }
 
 /************************** TOLAYER3 ***************/
-void tolayer3(int AorB, struct frm frame)
+void tolayer1(int AorB, struct frm frame)
 {
     struct frm *myfrmptr;
     struct event *evptr, *q;
     float lastime, x;
     int i;
 
-    ntolayer3++;
+    ntolayer1++;
 
     /* simulate losses: */
     if (jimsrand() < lossprob)
     {
         nlost++;
         if (TRACE > 0)
-            printf("          TOLAYER3: frame being lost\n");
+            printf("          TOLAYER1: frame being lost\n");
         return;
     }
 
@@ -584,7 +584,7 @@ void tolayer3(int AorB, struct frm frame)
         myfrmptr->payload[i] = frame.payload[i];
     if (TRACE > 2)
     {
-        printf("          TOLAYER3: seq: %d, ack %d, check: %d ", myfrmptr->seqnum,
+        printf("          TOLAYER1: seq: %d, ack %d, check: %d ", myfrmptr->seqnum,
                myfrmptr->acknum, myfrmptr->checksum);
         for (i = 0; i < 20; i++)
             printf("%c", myfrmptr->payload[i]);
@@ -593,7 +593,7 @@ void tolayer3(int AorB, struct frm frame)
 
     /* create future event for arrival of frame at the other side */
     evptr = (struct event *)malloc(sizeof(struct event));
-    evptr->evtype = FROM_LAYER3;      /* frame will pop out from layer3 */
+    evptr->evtype = FROM_LAYER1;      /* frame will pop out from layer3 */
     evptr->eventity = (AorB + 1) % 2; /* event occurs at other entity */
     evptr->frmptr = myfrmptr;         /* save ptr to my copy of frame */
     /* finally, compute the arrival time of frame at the other end.
@@ -603,7 +603,7 @@ void tolayer3(int AorB, struct frm frame)
     lastime = time;
     /* for (q=evlist; q!=NULL && q->next!=NULL; q = q->next) */
     for (q = evlist; q != NULL; q = q->next)
-        if ((q->evtype == FROM_LAYER3 && q->eventity == evptr->eventity))
+        if ((q->evtype == FROM_LAYER1 && q->eventity == evptr->eventity))
             lastime = q->evtime;
     evptr->evtime = lastime + 1 + 9 * jimsrand();
 
@@ -618,11 +618,11 @@ void tolayer3(int AorB, struct frm frame)
         else
             myfrmptr->acknum = 999999;
         if (TRACE > 0)
-            printf("          TOLAYER3: frame being corrupted\n");
+            printf("          TOLAYER1: frame being corrupted\n");
     }
 
     if (TRACE > 2)
-        printf("          TOLAYER3: scheduling arrival on other side\n");
+        printf("          TOLAYER1: scheduling arrival on other side\n");
     insertevent(evptr);
 }
 
