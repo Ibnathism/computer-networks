@@ -10,10 +10,10 @@
    data transfer protocols (from A to B. Bidirectional transfer of data
    is for extra credit and is not required).  Network properties:
    - one way network delay averages five time units (longer if there
-       are other messages in the channel for GBN), but can be larger
-   - packets can be corrupted (either the header or the data portion)
+       are other packets in the channel for GBN), but can be larger
+   - frames can be corrupted (either the header or the data portion)
        or lost, according to user-defined probabilities
-   - packets will be delivered in the order in which they were sent
+   - frames will be delivered in the order in which they were sent
        (although some can be lost).
 **********************************************************************/
 
@@ -26,18 +26,20 @@
 #define CALLING_ENTITY_A 0
 #define CALLING_ENTITY_B 1
 
-/* a "msg" is the data unit passed from layer 5 (teachers code) to layer  */
+/* a "pkt" is the data unit passed from layer 5 (teachers code) to layer  */
 /* 4 (students' code).  It contains the data (characters) to be delivered */
 /* to layer 5 via the students transport level protocol entities.         */
-struct msg
+
+struct pkt
 {
     char data[20];
 };
 
-/* a packet is the data unit passed from layer 4 (students code) to layer */
-/* 3 (teachers code).  Note the pre-defined packet structure, which all   */
+/* a frame is the data unit passed from layer 4 (students code) to layer */
+/* 3 (teachers code).  Note the pre-defined frame structure, which all   */
 /* students must follow. */
-struct pkt
+
+struct frm
 {
     int seqnum;
     int acknum;
@@ -45,7 +47,7 @@ struct pkt
     char payload[20];
 };
 
-struct pkt A_packet;
+struct frm A_frame;
 int A_sequence_number;
 int B_sequence_number;
 int A_state;
@@ -53,27 +55,27 @@ int A_state;
 /********* FUNCTION PROTOTYPES. DEFINED IN THE LATER PART******************/
 void starttimer(int AorB, float increment);
 void stoptimer(int AorB);
-void tolayer3(int AorB, struct pkt packet);
+void tolayer3(int AorB, struct frm frame);
 void tolayer5(int AorB, char datasent[20]);
 
 /********* STUDENTS WRITE THE NEXT SEVEN ROUTINES *********/
-struct pkt get_packet(struct msg message);
+struct frm get_frame(struct pkt packet);
 int find_checksum(int seqnum, int acknum, char *payload);
-void acknowledgement_message_to_A(int acknowledgement_code);
-void printPacket(struct pkt packet);
+void acknowledgement_packet_to_A(int acknowledgement_code);
+void print_frame(struct frm frame);
 
 /* called from layer 5, passed the data to be sent to other side */
-void A_output(struct msg message)
+void A_output(struct pkt packet)
 {
     printf("\n\n----------- Inside A_output -----------\n");
     if (A_state == IN_LAYER_5)
     {
         printf("\nA is in layer 5 state\n");
         A_state = ACK_PENDING;
-        A_packet = get_packet(message);
-        printf("\nA is sending a packet to Layer3 and Waiting for acknowledgement\n");
-        printPacket(A_packet);
-        tolayer3(CALLING_ENTITY_A, A_packet);
+        A_frame = get_frame(packet);
+        printf("\nA is sending a frame to Layer3 and Waiting for acknowledgement\n");
+        print_frame(A_frame);
+        tolayer3(CALLING_ENTITY_A, A_frame);
         starttimer(CALLING_ENTITY_A, TIME_BEFORE_TIMER_INT);
     }
     else
@@ -83,19 +85,19 @@ void A_output(struct msg message)
 }
 
 /* need be completed only for extra credit */
-void B_output(struct msg message)
+void B_output(struct pkt packet)
 {
     printf("\n----------- B_output :::::::: Not Used -----------\n");
 }
 
-/* called from layer 3, when a packet arrives for layer 4 */
-void A_input(struct pkt packet)
+/* called from layer 3, when a frame arrives for layer 4 */
+void A_input(struct frm frame)
 {
     printf("\n\n----------- Inside A_input -----------\n");
-    int temp_cs = find_checksum(packet.seqnum, packet.acknum, packet.payload);
-    if (A_sequence_number != packet.acknum)
+    int temp_cs = find_checksum(frame.seqnum, frame.acknum, frame.payload);
+    if (A_sequence_number != frame.acknum)
     {
-        printf("\n----------Expected Acknowledgement: %d---------Found: %d-----------\n", A_sequence_number, packet.acknum);
+        printf("\n----------Expected Acknowledgement: %d---------Found: %d-----------\n", A_sequence_number, frame.acknum);
         return;
     }
     if (A_state != ACK_PENDING)
@@ -103,13 +105,13 @@ void A_input(struct pkt packet)
         printf("\n---------A is not waiting for any acknowledgement----------\n");
         return;
     }
-    if (temp_cs != packet.checksum)
+    if (temp_cs != frame.checksum)
     {
-        printf("\n-------Checksum doesn't match-----Packet Corruption-------\n");
+        printf("\n-------Checksum doesn't match-----frame Corruption-------\n");
         return;
     }
-    printf("\nA got proper acknowledgement:::::Acknum: %d::::: Message: %s\n", packet.acknum, A_packet.payload);
-    //printPacket(packet);
+    printf("\nA got proper acknowledgement:::::Acknum: %d::::: packet: %s\n", frame.acknum, A_frame.payload);
+    //print_frame(frame);
     printf("\nA is stopping timer and going back to non waiting state\n");
     stoptimer(CALLING_ENTITY_A);
     A_sequence_number = 1 - A_sequence_number;
@@ -122,9 +124,9 @@ void A_timerinterrupt(void)
     printf("\n\n----------- Inside A_timerinterrupt -----------\n");
     if (A_state == ACK_PENDING)
     {
-        printf("\n------ State: ACK_PENDING ------- A is sending the last packet again to layer 3-----\n");
-        //printPacket(A_packet);
-        tolayer3(CALLING_ENTITY_A, A_packet);
+        printf("\n------ State: ACK_PENDING ------- A is sending the last frame again to layer 3-----\n");
+        //print_frame(A_frame);
+        tolayer3(CALLING_ENTITY_A, A_frame);
         starttimer(CALLING_ENTITY_A, TIME_BEFORE_TIMER_INT);
     }
     else
@@ -143,27 +145,27 @@ void A_init(void)
 }
 
 /* Note that with simplex transfer from a-to-B, there is no B_output() */
-/* called from layer 3, when a packet arrives for layer 4 at B*/
-void B_input(struct pkt packet)
+/* called from layer 3, when a frame arrives for layer 4 at B*/
+void B_input(struct frm frame)
 {
     printf("\n\n----------- Inside B_input -----------\n");
-    printPacket(packet);
-    int temp_cs = find_checksum(packet.seqnum, packet.acknum, packet.payload);
+    print_frame(frame);
+    int temp_cs = find_checksum(frame.seqnum, frame.acknum, frame.payload);
     int acknowledgement_code = 1 - B_sequence_number;
-    if (temp_cs != packet.checksum || packet.seqnum != B_sequence_number)
+    if (temp_cs != frame.checksum || frame.seqnum != B_sequence_number)
     {
-        if (temp_cs != packet.checksum)
-            printf("\n-------Checksum doesn't match-----Packet Corruption-------\n");
-        if (packet.seqnum != B_sequence_number)
-            printf("\n-------Sequence number doesn't match-------- Wanted: %d------Found: %d\n", B_sequence_number, packet.seqnum);
-        printf("\nB is sending NACK by alternating the acknowledgement number::::Packet acknum: %d\n", acknowledgement_code);
-        acknowledgement_message_to_A(acknowledgement_code);
+        if (temp_cs != frame.checksum)
+            printf("\n-------Checksum doesn't match-----frame Corruption-------\n");
+        if (frame.seqnum != B_sequence_number)
+            printf("\n-------Sequence number doesn't match-------- Wanted: %d------Found: %d\n", B_sequence_number, frame.seqnum);
+        printf("\nB is sending NACK by alternating the acknowledgement number::::frame acknum: %d\n", acknowledgement_code);
+        acknowledgement_packet_to_A(acknowledgement_code);
         return;
     }
-    printf("\nB is sending proper acknowledgement to A and sending the packet to layer 5\n");
-    //printPacket(packet);
-    acknowledgement_message_to_A(B_sequence_number);
-    tolayer5(CALLING_ENTITY_B, packet.payload);
+    printf("\nB is sending proper acknowledgement to A and sending the frame to layer 5\n");
+    //print_frame(frame);
+    acknowledgement_packet_to_A(B_sequence_number);
+    tolayer5(CALLING_ENTITY_B, frame.payload);
     B_sequence_number = acknowledgement_code;
 }
 
@@ -191,40 +193,40 @@ int find_checksum(int seqnum, int acknum, char *payload)
     return cs;
 }
 
-void acknowledgement_message_to_A(int acknowledgement_code)
+void acknowledgement_packet_to_A(int acknowledgement_code)
 {
-    struct pkt temp_pkt;
-    temp_pkt.acknum = acknowledgement_code;
-    temp_pkt.checksum = find_checksum(temp_pkt.seqnum, temp_pkt.acknum, temp_pkt.payload);
-    tolayer3(CALLING_ENTITY_B, temp_pkt);
+    struct frm temp_frm;
+    temp_frm.acknum = acknowledgement_code;
+    temp_frm.checksum = find_checksum(temp_frm.seqnum, temp_frm.acknum, temp_frm.payload);
+    tolayer3(CALLING_ENTITY_B, temp_frm);
 }
 
-struct pkt get_packet(struct msg message)
+struct frm get_frame(struct pkt packet)
 {
-    struct pkt temp_pkt;
-    temp_pkt.seqnum = A_sequence_number;
+    struct frm temp_frm;
+    temp_frm.seqnum = A_sequence_number;
     for (int i = 0; i < 20; i++)
     {
-        temp_pkt.payload[i] = message.data[i];
+        temp_frm.payload[i] = packet.data[i];
     }
-    temp_pkt.checksum = find_checksum(temp_pkt.seqnum, temp_pkt.acknum, temp_pkt.payload);
-    return temp_pkt;
+    temp_frm.checksum = find_checksum(temp_frm.seqnum, temp_frm.acknum, temp_frm.payload);
+    return temp_frm;
 }
 
-void printPacket(struct pkt packet)
+void print_frame(struct frm frame)
 {
-    printf("\n\n::::::: Packet ::::::::\n");
-    printf("Seqnum: %d\nAcknum: %d\nChecksum: %d\nPayload: %s\n", packet.seqnum, packet.acknum, packet.checksum, packet.payload);
+    printf("\n\n::::::: frame ::::::::\n");
+    printf("Seqnum: %d\nAcknum: %d\nChecksum: %d\nPayload: %s\n", frame.seqnum, frame.acknum, frame.checksum, frame.payload);
 }
 
 /*****************************************************************
 ***************** NETWORK EMULATION CODE STARTS BELOW ***********
 The code below emulates the layer 3 and below network environment:
     - emulates the tranmission and delivery (possibly with bit-level corruption
-        and packet loss) of packets across the layer 3/4 interface
+        and frame loss) of frames across the layer 3/4 interface
     - handles the starting/stopping of a timer, and generates timer
         interrupts (resulting in calling students timer handler).
-    - generates message to be sent (passed from later 5 to 4)
+    - generates packet to be sent (passed from later 5 to 4)
 
 THERE IS NOT REASON THAT ANY STUDENT SHOULD HAVE TO READ OR UNDERSTAND
 THE CODE BELOW.  YOU SHOLD NOT TOUCH, OR REFERENCE (in your code) ANY
@@ -238,7 +240,7 @@ struct event
     float evtime;       /* event time */
     int evtype;         /* event type code */
     int eventity;       /* entity where event occurs */
-    struct pkt *pktptr; /* ptr to packet (if any) assoc w/ this event */
+    struct frm *frmptr; /* ptr to frame (if any) assoc w/ this event */
     struct event *prev;
     struct event *next;
 };
@@ -255,12 +257,12 @@ struct event *evlist = NULL; /* the event list */
 #define B 1
 
 int TRACE = 1;   /* for my debugging */
-int nsim = 0;    /* number of messages from 5 to 4 so far */
-int nsimmax = 0; /* number of msgs to generate, then stop */
+int nsim = 0;    /* number of packets from 5 to 4 so far */
+int nsimmax = 0; /* number of pkts to generate, then stop */
 float time = 0.000;
-float lossprob;    /* probability that a packet is dropped  */
-float corruptprob; /* probability that one bit is packet is flipped */
-float lambda;      /* arrival rate of messages from layer 5 */
+float lossprob;    /* probability that a frame is dropped  */
+float corruptprob; /* probability that one bit is frame is flipped */
+float lambda;      /* arrival rate of packets from layer 5 */
 int ntolayer3;     /* number sent into layer 3 */
 int nlost;         /* number lost in media */
 int ncorrupt;      /* number corrupted by media*/
@@ -272,8 +274,8 @@ void insertevent(struct event *p);
 int main()
 {
     struct event *eventptr;
-    struct msg msg2give;
     struct pkt pkt2give;
+    struct frm frm2give;
 
     int i, j;
     char c;
@@ -309,37 +311,37 @@ int main()
             {
                 if (nsim + 1 < nsimmax)
                     generate_next_arrival(); /* set up future arrival */
-                /* fill in msg to give with string of same letter */
+                /* fill in pkt to give with string of same letter */
                 j = nsim % 26;
                 for (i = 0; i < 20; i++)
-                    msg2give.data[i] = 97 + j;
-                msg2give.data[19] = 0;
+                    pkt2give.data[i] = 97 + j;
+                pkt2give.data[19] = 0;
                 if (TRACE > 2)
                 {
                     printf("          MAINLOOP: data given to student: ");
                     for (i = 0; i < 20; i++)
-                        printf("%c", msg2give.data[i]);
+                        printf("%c", pkt2give.data[i]);
                     printf("\n");
                 }
                 nsim++;
                 if (eventptr->eventity == A)
-                    A_output(msg2give);
+                    A_output(pkt2give);
                 else
-                    B_output(msg2give);
+                    B_output(pkt2give);
             }
         }
         else if (eventptr->evtype == FROM_LAYER3)
         {
-            pkt2give.seqnum = eventptr->pktptr->seqnum;
-            pkt2give.acknum = eventptr->pktptr->acknum;
-            pkt2give.checksum = eventptr->pktptr->checksum;
+            frm2give.seqnum = eventptr->frmptr->seqnum;
+            frm2give.acknum = eventptr->frmptr->acknum;
+            frm2give.checksum = eventptr->frmptr->checksum;
             for (i = 0; i < 20; i++)
-                pkt2give.payload[i] = eventptr->pktptr->payload[i];
-            if (eventptr->eventity == A) /* deliver packet by calling */
-                A_input(pkt2give);       /* appropriate entity */
+                frm2give.payload[i] = eventptr->frmptr->payload[i];
+            if (eventptr->eventity == A) /* deliver frame by calling */
+                A_input(frm2give);       /* appropriate entity */
             else
-                B_input(pkt2give);
-            free(eventptr->pktptr); /* free the memory for packet */
+                B_input(frm2give);
+            free(eventptr->frmptr); /* free the memory for frame */
         }
         else if (eventptr->evtype == TIMER_INTERRUPT)
         {
@@ -357,7 +359,7 @@ int main()
 
 terminate:
     printf(
-        " Simulator terminated at time %f\n after sending %d msgs from layer5\n",
+        " Simulator terminated at time %f\n after sending %d pkts from layer5\n",
         time, nsim);
 }
 
@@ -368,13 +370,13 @@ void init() /* initialize the simulator */
     float jimsrand();
 
     printf("-----  Stop and Wait Network Simulator Version 1.1 -------- \n\n");
-    printf("Enter the number of messages to simulate: ");
+    printf("Enter the number of packets to simulate: ");
     scanf("%d", &nsimmax);
-    printf("Enter  packet loss probability [enter 0.0 for no loss]:");
+    printf("Enter  frame loss probability [enter 0.0 for no loss]:");
     scanf("%f", &lossprob);
-    printf("Enter packet corruption probability [0.0 for no corruption]:");
+    printf("Enter frame corruption probability [0.0 for no corruption]:");
     scanf("%f", &corruptprob);
-    printf("Enter average time between messages from sender's layer5 [ > 0.0]:");
+    printf("Enter average time between packets from sender's layer5 [ > 0.0]:");
     scanf("%f", &lambda);
     printf("Enter TRACE:");
     scanf("%d", &TRACE);
@@ -554,9 +556,9 @@ void starttimer(int AorB /* A or B is trying to start timer */, float increment)
 }
 
 /************************** TOLAYER3 ***************/
-void tolayer3(int AorB, struct pkt packet)
+void tolayer3(int AorB, struct frm frame)
 {
-    struct pkt *mypktptr;
+    struct frm *myfrmptr;
     struct event *evptr, *q;
     float lastime, x;
     int i;
@@ -568,35 +570,35 @@ void tolayer3(int AorB, struct pkt packet)
     {
         nlost++;
         if (TRACE > 0)
-            printf("          TOLAYER3: packet being lost\n");
+            printf("          TOLAYER3: frame being lost\n");
         return;
     }
 
-    /* make a copy of the packet student just gave me since he/she may decide */
-    /* to do something with the packet after we return back to him/her */
-    mypktptr = (struct pkt *)malloc(sizeof(struct pkt));
-    mypktptr->seqnum = packet.seqnum;
-    mypktptr->acknum = packet.acknum;
-    mypktptr->checksum = packet.checksum;
+    /* make a copy of the frame student just gave me since he/she may decide */
+    /* to do something with the frame after we return back to him/her */
+    myfrmptr = (struct frm *)malloc(sizeof(struct frm));
+    myfrmptr->seqnum = frame.seqnum;
+    myfrmptr->acknum = frame.acknum;
+    myfrmptr->checksum = frame.checksum;
     for (i = 0; i < 20; i++)
-        mypktptr->payload[i] = packet.payload[i];
+        myfrmptr->payload[i] = frame.payload[i];
     if (TRACE > 2)
     {
-        printf("          TOLAYER3: seq: %d, ack %d, check: %d ", mypktptr->seqnum,
-               mypktptr->acknum, mypktptr->checksum);
+        printf("          TOLAYER3: seq: %d, ack %d, check: %d ", myfrmptr->seqnum,
+               myfrmptr->acknum, myfrmptr->checksum);
         for (i = 0; i < 20; i++)
-            printf("%c", mypktptr->payload[i]);
+            printf("%c", myfrmptr->payload[i]);
         printf("\n");
     }
 
-    /* create future event for arrival of packet at the other side */
+    /* create future event for arrival of frame at the other side */
     evptr = (struct event *)malloc(sizeof(struct event));
-    evptr->evtype = FROM_LAYER3;      /* packet will pop out from layer3 */
+    evptr->evtype = FROM_LAYER3;      /* frame will pop out from layer3 */
     evptr->eventity = (AorB + 1) % 2; /* event occurs at other entity */
-    evptr->pktptr = mypktptr;         /* save ptr to my copy of packet */
-    /* finally, compute the arrival time of packet at the other end.
-       medium can not reorder, so make sure packet arrives between 1 and 10
-       time units after the latest arrival time of packets
+    evptr->frmptr = myfrmptr;         /* save ptr to my copy of frame */
+    /* finally, compute the arrival time of frame at the other end.
+       medium can not reorder, so make sure frame arrives between 1 and 10
+       time units after the latest arrival time of frames
        currently in the medium on their way to the destination */
     lastime = time;
     /* for (q=evlist; q!=NULL && q->next!=NULL; q = q->next) */
@@ -610,13 +612,13 @@ void tolayer3(int AorB, struct pkt packet)
     {
         ncorrupt++;
         if ((x = jimsrand()) < .75)
-            mypktptr->payload[0] = 'Z'; /* corrupt payload */
+            myfrmptr->payload[0] = 'Z'; /* corrupt payload */
         else if (x < .875)
-            mypktptr->seqnum = 999999;
+            myfrmptr->seqnum = 999999;
         else
-            mypktptr->acknum = 999999;
+            myfrmptr->acknum = 999999;
         if (TRACE > 0)
-            printf("          TOLAYER3: packet being corrupted\n");
+            printf("          TOLAYER3: frame being corrupted\n");
     }
 
     if (TRACE > 2)
