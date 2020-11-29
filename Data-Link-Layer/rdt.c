@@ -32,7 +32,7 @@
 
 struct pkt
 {
-    char data[20];
+    char data[4];
 };
 
 /* a frame is the data unit passed from layer 4 (students code) to layer */
@@ -44,7 +44,7 @@ struct frm
     int seqnum;
     int acknum;
     int checksum;
-    char payload[20];
+    char payload[4];
 };
 
 struct frm A_frame;
@@ -56,7 +56,7 @@ int A_state;
 void starttimer(int AorB, float increment);
 void stoptimer(int AorB);
 void tolayer1(int AorB, struct frm frame);
-void tolayer3(int AorB, char datasent[20]);
+void tolayer3(int AorB, char datasent[4]);
 
 /********* STUDENTS WRITE THE NEXT SEVEN ROUTINES *********/
 struct frm get_frame(struct pkt packet);
@@ -74,7 +74,7 @@ void A_output(struct pkt packet)
         A_state = ACK_PENDING;
         A_frame = get_frame(packet);
         printf("\nA is sending a frame to Layer1 and Waiting for acknowledgement\n");
-        print_frame(A_frame);
+        //print_frame(A_frame);
         tolayer1(CALLING_ENTITY_A, A_frame);
         starttimer(CALLING_ENTITY_A, TIME_BEFORE_TIMER_INT);
     }
@@ -149,7 +149,7 @@ void A_init(void)
 void B_input(struct frm frame)
 {
     printf("\n\n----------- Inside B_input -----------\n");
-    print_frame(frame);
+    //print_frame(frame);
     int temp_cs = find_checksum(frame.seqnum, frame.acknum, frame.payload);
     int acknowledgement_code = 1 - B_sequence_number;
     if (temp_cs != frame.checksum || frame.seqnum != B_sequence_number)
@@ -186,7 +186,7 @@ void B_init(void)
 int find_checksum(int seqnum, int acknum, char *payload)
 {
     int cs = seqnum + acknum;
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 4; i++)
     {
         cs = cs + payload[i];
     }
@@ -205,7 +205,7 @@ struct frm get_frame(struct pkt packet)
 {
     struct frm temp_frm;
     temp_frm.seqnum = A_sequence_number;
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 4; i++)
     {
         temp_frm.payload[i] = packet.data[i];
     }
@@ -313,13 +313,13 @@ int main()
                     generate_next_arrival(); /* set up future arrival */
                 /* fill in pkt to give with string of same letter */
                 j = nsim % 26;
-                for (i = 0; i < 20; i++)
+                for (i = 0; i < 4; i++)
                     pkt2give.data[i] = 97 + j;
-                pkt2give.data[19] = 0;
+                pkt2give.data[3] = 0;
                 if (TRACE > 2)
                 {
                     printf("          MAINLOOP: data given to student: ");
-                    for (i = 0; i < 20; i++)
+                    for (i = 0; i < 4; i++)
                         printf("%c", pkt2give.data[i]);
                     printf("\n");
                 }
@@ -335,7 +335,7 @@ int main()
             frm2give.seqnum = eventptr->frmptr->seqnum;
             frm2give.acknum = eventptr->frmptr->acknum;
             frm2give.checksum = eventptr->frmptr->checksum;
-            for (i = 0; i < 20; i++)
+            for (i = 0; i < 4; i++)
                 frm2give.payload[i] = eventptr->frmptr->payload[i];
             if (eventptr->eventity == A) /* deliver frame by calling */
                 A_input(frm2give);       /* appropriate entity */
@@ -580,13 +580,13 @@ void tolayer1(int AorB, struct frm frame)
     myfrmptr->seqnum = frame.seqnum;
     myfrmptr->acknum = frame.acknum;
     myfrmptr->checksum = frame.checksum;
-    for (i = 0; i < 20; i++)
+    for (i = 0; i < 4; i++)
         myfrmptr->payload[i] = frame.payload[i];
     if (TRACE > 2)
     {
         printf("          TOLAYER1: seq: %d, ack %d, check: %d ", myfrmptr->seqnum,
                myfrmptr->acknum, myfrmptr->checksum);
-        for (i = 0; i < 20; i++)
+        for (i = 0; i < 4; i++)
             printf("%c", myfrmptr->payload[i]);
         printf("\n");
     }
@@ -626,13 +626,13 @@ void tolayer1(int AorB, struct frm frame)
     insertevent(evptr);
 }
 
-void tolayer3(int AorB, char datasent[20])
+void tolayer3(int AorB, char datasent[4])
 {
     int i;
     if (TRACE > 2)
     {
         printf("          TOLAYER3: data received: ");
-        for (i = 0; i < 20; i++)
+        for (i = 0; i < 4; i++)
             printf("%c", datasent[i]);
         printf("\n");
     }
