@@ -26,6 +26,10 @@
 #define CALLING_ENTITY_A 0
 #define CALLING_ENTITY_B 1
 
+#define DATA_FRAME 0
+#define ACK_FRAME 1
+#define DATA_WITH_PIGGY_ACK_FRAME 2
+
 /* a "pkt" is the data unit passed from layer 5 (teachers code) to layer  */
 /* 4 (students' code).  It contains the data (characters) to be delivered */
 /* to layer 5 via the students transport level protocol entities.         */
@@ -45,6 +49,7 @@ struct frm
     int acknum;
     int checksum;
     char payload[4];
+    int type;
 };
 
 struct frm A_frame;
@@ -198,6 +203,7 @@ void acknowledgement_packet_to_A(int acknowledgement_code)
     struct frm temp_frm;
     temp_frm.acknum = acknowledgement_code;
     temp_frm.checksum = find_checksum(temp_frm.seqnum, temp_frm.acknum, temp_frm.payload);
+    temp_frm.type = ACK_FRAME;
     tolayer1(CALLING_ENTITY_B, temp_frm);
 }
 
@@ -210,6 +216,7 @@ struct frm get_frame(struct pkt packet)
         temp_frm.payload[i] = packet.data[i];
     }
     temp_frm.checksum = find_checksum(temp_frm.seqnum, temp_frm.acknum, temp_frm.payload);
+    temp_frm.type = DATA_FRAME;
     return temp_frm;
 }
 
