@@ -20,7 +20,7 @@
 #define BIDIRECTIONAL 0 /* change to 1 if you're doing extra credit */
 /* and write a routine called B_output */
 
-#define IN_LAYER_5 1
+#define IN_LAYER_3 1
 #define ACK_PENDING 2
 #define TIME_BEFORE_TIMER_INT 30
 #define CALLING_ENTITY_A 0
@@ -56,7 +56,7 @@ int A_state;
 void starttimer(int AorB, float increment);
 void stoptimer(int AorB);
 void tolayer1(int AorB, struct frm frame);
-void tolayer5(int AorB, char datasent[20]);
+void tolayer3(int AorB, char datasent[20]);
 
 /********* STUDENTS WRITE THE NEXT SEVEN ROUTINES *********/
 struct frm get_frame(struct pkt packet);
@@ -68,9 +68,9 @@ void print_frame(struct frm frame);
 void A_output(struct pkt packet)
 {
     printf("\n\n----------- Inside A_output -----------\n");
-    if (A_state == IN_LAYER_5)
+    if (A_state == IN_LAYER_3)
     {
-        printf("\nA is in layer 5 state\n");
+        printf("\nA is in layer 3 state\n");
         A_state = ACK_PENDING;
         A_frame = get_frame(packet);
         printf("\nA is sending a frame to Layer1 and Waiting for acknowledgement\n");
@@ -115,7 +115,7 @@ void A_input(struct frm frame)
     printf("\nA is stopping timer and going back to non waiting state\n");
     stoptimer(CALLING_ENTITY_A);
     A_sequence_number = 1 - A_sequence_number;
-    A_state = IN_LAYER_5;
+    A_state = IN_LAYER_3;
 }
 
 /* called when A's timer goes off */
@@ -140,7 +140,7 @@ void A_timerinterrupt(void)
 void A_init(void)
 {
     printf("\n----------- Initializing A -----------\n");
-    A_state = IN_LAYER_5;
+    A_state = IN_LAYER_3;
     A_sequence_number = 0;
 }
 
@@ -162,10 +162,10 @@ void B_input(struct frm frame)
         acknowledgement_packet_to_A(acknowledgement_code);
         return;
     }
-    printf("\nB is sending proper acknowledgement to A and sending the frame to layer 5\n");
+    printf("\nB is sending proper acknowledgement to A and sending the frame to layer 3\n");
     //print_frame(frame);
     acknowledgement_packet_to_A(B_sequence_number);
-    tolayer5(CALLING_ENTITY_B, frame.payload);
+    tolayer3(CALLING_ENTITY_B, frame.payload);
     B_sequence_number = acknowledgement_code;
 }
 
@@ -248,7 +248,7 @@ struct event *evlist = NULL; /* the event list */
 
 /* possible events: */
 #define TIMER_INTERRUPT 0
-#define FROM_LAYER5 1
+#define FROM_LAYER3 1
 #define FROM_LAYER1 2
 
 #define OFF 0
@@ -299,13 +299,13 @@ int main()
             if (eventptr->evtype == 0)
                 printf(", timerinterrupt  ");
             else if (eventptr->evtype == 1)
-                printf(", fromlayer5 ");
+                printf(", fromlayer3 ");
             else
                 printf(", fromlayer1 ");
             printf(" entity: %d\n", eventptr->eventity);
         }
         time = eventptr->evtime; /* update time to next event time */
-        if (eventptr->evtype == FROM_LAYER5)
+        if (eventptr->evtype == FROM_LAYER3)
         {
             if (nsim < nsimmax)
             {
@@ -359,7 +359,7 @@ int main()
 
 terminate:
     printf(
-        " Simulator terminated at time %f\n after sending %d pkts from layer5\n",
+        " Simulator terminated at time %f\n after sending %d pkts from layer3\n",
         time, nsim);
 }
 
@@ -376,7 +376,7 @@ void init() /* initialize the simulator */
     scanf("%f", &lossprob);
     printf("Enter frame corruption probability [0.0 for no corruption]:");
     scanf("%f", &corruptprob);
-    printf("Enter average time between packets from sender's layer5 [ > 0.0]:");
+    printf("Enter average time between packets from sender's layer3 [ > 0.0]:");
     scanf("%f", &lambda);
     printf("Enter TRACE:");
     scanf("%d", &TRACE);
@@ -433,7 +433,7 @@ void generate_next_arrival(void)
     /* having mean of lambda        */
     evptr = (struct event *)malloc(sizeof(struct event));
     evptr->evtime = time + x;
-    evptr->evtype = FROM_LAYER5;
+    evptr->evtype = FROM_LAYER3;
     if (BIDIRECTIONAL && (jimsrand() > 0.5))
         evptr->eventity = B;
     else
@@ -626,12 +626,12 @@ void tolayer1(int AorB, struct frm frame)
     insertevent(evptr);
 }
 
-void tolayer5(int AorB, char datasent[20])
+void tolayer3(int AorB, char datasent[20])
 {
     int i;
     if (TRACE > 2)
     {
-        printf("          TOLAYER5: data received: ");
+        printf("          TOLAYER3: data received: ");
         for (i = 0; i < 20; i++)
             printf("%c", datasent[i]);
         printf("\n");
