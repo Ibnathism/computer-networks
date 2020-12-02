@@ -79,7 +79,7 @@ void A_output(struct pkt packet)
         A_state = ACK_PENDING;
         A_frame = get_frame(packet);
         printf("\nA is sending a frame to Layer1 and Waiting for acknowledgement\n");
-        //print_frame(A_frame);
+        print_frame(A_frame);
         tolayer1(CALLING_ENTITY_A, A_frame);
         starttimer(CALLING_ENTITY_A, TIME_BEFORE_TIMER_INT);
     }
@@ -116,7 +116,7 @@ void A_input(struct frm frame)
         return;
     }
     printf("\nA got proper acknowledgement:::::Acknum: %d::::: packet: %s\n", frame.acknum, A_frame.payload);
-    //print_frame(frame);
+    print_frame(frame);
     printf("\nA is stopping timer and going back to non waiting state\n");
     stoptimer(CALLING_ENTITY_A);
     A_sequence_number = 1 - A_sequence_number;
@@ -130,7 +130,7 @@ void A_timerinterrupt(void)
     if (A_state == ACK_PENDING)
     {
         printf("\n------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----\n");
-        //print_frame(A_frame);
+        print_frame(A_frame);
         tolayer1(CALLING_ENTITY_A, A_frame);
         starttimer(CALLING_ENTITY_A, TIME_BEFORE_TIMER_INT);
     }
@@ -154,7 +154,7 @@ void A_init(void)
 void B_input(struct frm frame)
 {
     printf("\n\n----------- Inside B_input -----------\n");
-    //print_frame(frame);
+    print_frame(frame);
     int temp_cs = find_checksum(frame.seqnum, frame.acknum, frame.payload);
     int acknowledgement_code = 1 - B_sequence_number;
     if (temp_cs != frame.checksum || frame.seqnum != B_sequence_number)
@@ -204,6 +204,7 @@ void acknowledgement_packet_to_A(int acknowledgement_code)
     temp_frm.acknum = acknowledgement_code;
     temp_frm.checksum = find_checksum(temp_frm.seqnum, temp_frm.acknum, temp_frm.payload);
     temp_frm.type = ACK_FRAME;
+    //print_frame(temp_frm);
     tolayer1(CALLING_ENTITY_B, temp_frm);
 }
 
@@ -223,7 +224,7 @@ struct frm get_frame(struct pkt packet)
 void print_frame(struct frm frame)
 {
     printf("\n\n::::::: frame ::::::::\n");
-    printf("Seqnum: %d\nAcknum: %d\nChecksum: %d\nPayload: %s\n", frame.seqnum, frame.acknum, frame.checksum, frame.payload);
+    printf("Seqnum: %d\nAcknum: %d\nChecksum: %d\nPayload: %s\nType: %d\n", frame.seqnum, frame.acknum, frame.checksum, frame.payload, frame.type);
 }
 
 /*****************************************************************
@@ -342,6 +343,7 @@ int main()
             frm2give.seqnum = eventptr->frmptr->seqnum;
             frm2give.acknum = eventptr->frmptr->acknum;
             frm2give.checksum = eventptr->frmptr->checksum;
+            frm2give.type = eventptr->frmptr->type;
             for (i = 0; i < 4; i++)
                 frm2give.payload[i] = eventptr->frmptr->payload[i];
             if (eventptr->eventity == A) /* deliver frame by calling */
@@ -584,9 +586,12 @@ void tolayer1(int AorB, struct frm frame)
     /* make a copy of the frame student just gave me since he/she may decide */
     /* to do something with the frame after we return back to him/her */
     myfrmptr = (struct frm *)malloc(sizeof(struct frm));
+    //printf("---DEBUG------");
+    //print_frame(frame);
     myfrmptr->seqnum = frame.seqnum;
     myfrmptr->acknum = frame.acknum;
     myfrmptr->checksum = frame.checksum;
+    myfrmptr->type = frame.type;
     for (i = 0; i < 4; i++)
         myfrmptr->payload[i] = frame.payload[i];
     if (TRACE > 2)
