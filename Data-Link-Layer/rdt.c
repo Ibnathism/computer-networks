@@ -19,10 +19,11 @@
 
 #define BIDIRECTIONAL 1 /* change to 1 if you're doing extra credit */
 /* and write a routine called B_output */
+#define PIGGYBACKING 1
 
 #define IN_LAYER_3 1
 #define ACK_PENDING 2
-#define TIME_BEFORE_TIMER_INT 30
+#define TIME_BEFORE_TIMER_INT 1000000
 #define CALLING_ENTITY_A 0
 #define CALLING_ENTITY_B 1
 
@@ -61,6 +62,8 @@ struct frm B_frame;
 int B_sequence_number;
 int A_exp_seq_num;
 int B_state;
+int B_outstanding_ack;
+int B_ack_code_piggy;
 
 /********* FUNCTION PROTOTYPES. DEFINED IN THE LATER PART******************/
 void starttimer(int AorB, float increment);
@@ -86,86 +89,162 @@ void A_output(struct pkt packet)
         A_state = ACK_PENDING;
         A_frame = get_frame_for_A(packet);
         printf("\nA is sending a frame to Layer1 and Waiting for acknowledgement\n");
-        print_frame(A_frame);
         tolayer1(CALLING_ENTITY_A, A_frame);
         starttimer(CALLING_ENTITY_A, TIME_BEFORE_TIMER_INT);
     }
     else
     {
-        printf("\nA is waiting for acknowledgement\n");
+        printf("\nA is waiting for acknowledgement of %s, dropping %s\n", A_frame.payload, packet.data);
     }
 }
 
+void data_non_piggy(struct pkt packet)
+{
+    printf("\nB is in layer 3 state\n");
+    B_state = ACK_PENDING;
+    B_frame = get_frame_for_B(packet);
+    printf("\nB is sending a frame to Layer1 and Waiting for acknowledgement\n");
+    tolayer1(CALLING_ENTITY_B, B_frame);
+    starttimer(CALLING_ENTITY_B, TIME_BEFORE_TIMER_INT);
+}
 /* need be completed only for extra credit */
 void B_output(struct pkt packet)
 {
     printf("\n\n----------- Inside B_output -----------\n");
     if (B_state == IN_LAYER_3)
     {
-        printf("\nB is in layer 3 state\n");
-        B_state = ACK_PENDING;
-        B_frame = get_frame_for_B(packet);
-        printf("\nB is sending a frame to Layer1 and Waiting for acknowledgement\n");
-        print_frame(B_frame);
-        tolayer1(CALLING_ENTITY_B, B_frame);
-        starttimer(CALLING_ENTITY_B, TIME_BEFORE_TIMER_INT);
+        if (PIGGYBACKING == 1)
+        {
+            if (B_outstanding_ack == 1)
+            {
+                B_outstanding_ack = 0;
+                printf("\nB is in layer 3 state\n");
+                B_state = ACK_PENDING;
+                B_frame = get_frame_for_B(packet);
+                B_frame.acknum = B_exp_seq_num;
+                if (B_ack_code_piggy == B_exp_seq_num)
+                {
+                    B_exp_seq_num = 1 - B_exp_seq_num;
+                }
+                B_frame.type = DATA_WITH_PIGGY_ACK_FRAME;
+                printf("\nB sending Piggyback ack\n");
+                printf("\nB is sending a frame to Layer1 and Waiting for acknowledgement\n");
+                tolayer1(CALLING_ENTITY_B, B_frame);
+                starttimer(CALLING_ENTITY_B, TIME_BEFORE_TIMER_INT);
+            }
+            else
+            {
+                data_non_piggy(packet);
+            }
+        }
+        else
+        {
+            data_non_piggy(packet);
+        }
     }
     else
     {
-        printf("\nB is waiting for acknowledgement\n");
+        printf("\nB is waiting for acknowledgement of %s, dropping %s\n", B_frame.payload, packet.data);
     }
 }
 
+void handle_ack(struct frm frame)
+{
+    int temp_cs = find_checksum(frame.seqnum, frame.acknum, frame.payload);
+    if (A_sequence_number != frame.acknum)
+    {
+        printf("\n----------Expected Acknowledgement: %d---------Found: %d-----------\n", A_sequence_number, frame.acknum);
+        return;
+    }
+    if (A_state != ACK_PENDING)
+    {
+        printf("\n---------A is not waiting for any acknowledgement----------\n");
+        return;
+    }
+    if (temp_cs != frame.checksum)
+    {
+        printf("\n-------Checksum doesn't match-----frame Corruption-------\n");
+        return;
+    }
+    printf("\nA got proper acknowledgement:::::Acknum: %d::::: packet: %s\n", frame.acknum, A_frame.payload);
+    printf("\nA is stopping timer and going back to non waiting state\n");
+    stoptimer(CALLING_ENTITY_A);
+    A_sequence_number = 1 - A_sequence_number;
+    A_state = IN_LAYER_3;
+}
+
+void handle_data(struct frm frame)
+{
+    int temp_cs = find_checksum(frame.seqnum, frame.acknum, frame.payload);
+    int acknowledgement_code = 1 - A_exp_seq_num;
+    if (temp_cs != frame.checksum || frame.seqnum != A_exp_seq_num)
+    {
+        if (temp_cs != frame.checksum)
+            printf("\n-------Checksum doesn't match-----frame Corruption-------\n");
+        if (frame.seqnum != A_exp_seq_num)
+            printf("\n-------Sequence number doesn't match-------- Wanted: %d------Found: %d\n", A_exp_seq_num, frame.seqnum);
+        printf("\nA is sending NACK by alternating the acknowledgement number::::frame acknum: %d\n", acknowledgement_code);
+        give_acknowledgement_to_B(acknowledgement_code);
+        return;
+    }
+    printf("\nA is sending proper acknowledgement to B and sending the frame to layer 3\n");
+    give_acknowledgement_to_B(A_exp_seq_num);
+    tolayer3(CALLING_ENTITY_A, frame.payload);
+    A_exp_seq_num = acknowledgement_code;
+}
 /* called from layer 3, when a frame arrives for layer 4 */
 void A_input(struct frm frame)
 {
+    printf("\n\n----------- Inside A_input -----------\n");
+    print_frame(frame);
     if (frame.type == ACK_FRAME)
     {
-        printf("\n\n----------- Inside A_input -----------\n");
-        int temp_cs = find_checksum(frame.seqnum, frame.acknum, frame.payload);
-        if (A_sequence_number != frame.acknum)
-        {
-            printf("\n----------Expected Acknowledgement: %d---------Found: %d-----------\n", A_sequence_number, frame.acknum);
-            return;
-        }
+        handle_ack(frame);
+    }
+    else if (frame.type == DATA_FRAME)
+    {
+        handle_data(frame);
+    }
+    else if (frame.type == DATA_WITH_PIGGY_ACK_FRAME)
+    {
+
         if (A_state != ACK_PENDING)
         {
             printf("\n---------A is not waiting for any acknowledgement----------\n");
             return;
         }
+        int temp_cs = find_checksum(frame.seqnum, frame.acknum, frame.payload);
+        int acknowledgement_code = 1 - A_exp_seq_num;
         if (temp_cs != frame.checksum)
         {
             printf("\n-------Checksum doesn't match-----frame Corruption-------\n");
-            return;
         }
-        printf("\nA got proper acknowledgement:::::Acknum: %d::::: packet: %s\n", frame.acknum, A_frame.payload);
-        //print_frame(frame);
-        printf("\nA is stopping timer and going back to non waiting state\n");
-        stoptimer(CALLING_ENTITY_A);
-        A_sequence_number = 1 - A_sequence_number;
-        A_state = IN_LAYER_3;
-    }
-    else if (frame.type == DATA_FRAME)
-    {
-        printf("\n\n----------- Inside A_input -----------\n");
-        print_frame(frame);
-        int temp_cs = find_checksum(frame.seqnum, frame.acknum, frame.payload);
-        int acknowledgement_code = 1 - A_exp_seq_num;
-        if (temp_cs != frame.checksum || frame.seqnum != A_exp_seq_num)
+        else if (A_sequence_number != frame.acknum)
         {
-            if (temp_cs != frame.checksum)
-                printf("\n-------Checksum doesn't match-----frame Corruption-------\n");
-            if (frame.seqnum != A_exp_seq_num)
-                printf("\n-------Sequence number doesn't match-------- Wanted: %d------Found: %d\n", A_exp_seq_num, frame.seqnum);
+            printf("\n----------Expected Acknowledgement: %d---------Found: %d-----------\n", A_sequence_number, frame.acknum);
+        }
+        else
+        {
+            printf("\nA got proper acknowledgement:::::Acknum: %d::::: packet: %s\n", frame.acknum, A_frame.payload);
+            printf("\nA is stopping timer and going back to non waiting state\n");
+            stoptimer(CALLING_ENTITY_A);
+            A_sequence_number = 1 - A_sequence_number;
+            A_state = IN_LAYER_3;
+        }
+
+        if (frame.seqnum != A_exp_seq_num)
+        {
+            printf("\n-------Sequence number doesn't match-------- Wanted: %d------Found: %d\n", A_exp_seq_num, frame.seqnum);
             printf("\nA is sending NACK by alternating the acknowledgement number::::frame acknum: %d\n", acknowledgement_code);
             give_acknowledgement_to_B(acknowledgement_code);
-            return;
         }
-        printf("\nA is sending proper acknowledgement to B and sending the frame to layer 3\n");
-        //print_frame(frame);
-        give_acknowledgement_to_B(A_exp_seq_num);
-        tolayer3(CALLING_ENTITY_A, frame.payload);
-        A_exp_seq_num = acknowledgement_code;
+        else
+        {
+            printf("\nA is sending proper acknowledgement to B and sending the frame to layer 3\n");
+            give_acknowledgement_to_B(A_exp_seq_num);
+            tolayer3(CALLING_ENTITY_A, frame.payload);
+            A_exp_seq_num = acknowledgement_code;
+        }
     }
 }
 
@@ -176,7 +255,6 @@ void A_timerinterrupt(void)
     if (A_state == ACK_PENDING)
     {
         printf("\n------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----\n");
-        print_frame(A_frame);
         tolayer1(CALLING_ENTITY_A, A_frame);
         starttimer(CALLING_ENTITY_A, TIME_BEFORE_TIMER_INT);
     }
@@ -196,35 +274,71 @@ void A_init(void)
     A_exp_seq_num = 0;
 }
 
+void ack_non_piggy(struct frm frame)
+{
+
+    int temp_cs = find_checksum(frame.seqnum, frame.acknum, frame.payload);
+    B_outstanding_ack = 0;
+    int acknowledgement_code = 1 - B_exp_seq_num;
+    if (temp_cs != frame.checksum || frame.seqnum != B_exp_seq_num)
+    {
+        if (temp_cs != frame.checksum)
+            printf("\n-------Checksum doesn't match-----frame Corruption-------\n");
+        if (frame.seqnum != B_exp_seq_num)
+            printf("\n-------Sequence number doesn't match-------- Wanted: %d------Found: %d\n", B_exp_seq_num, frame.seqnum);
+        printf("\nB is sending NACK by alternating the acknowledgement number::::frame acknum: %d\n", acknowledgement_code);
+        give_acknowledgement_to_A(acknowledgement_code);
+        return;
+    }
+    printf("\nB is sending proper acknowledgement to A and sending the frame to layer 3\n");
+    give_acknowledgement_to_A(B_exp_seq_num);
+    tolayer3(CALLING_ENTITY_B, frame.payload);
+    B_exp_seq_num = acknowledgement_code;
+}
 /* Note that with simplex transfer from a-to-B, there is no B_output() */
 /* called from layer 3, when a frame arrives for layer 4 at B*/
 void B_input(struct frm frame)
 {
+    printf("\n\n----------- Inside B_input -----------\n");
+    print_frame(frame);
     if (frame.type == DATA_FRAME)
     {
-        printf("\n\n----------- Inside B_input -----------\n");
-        print_frame(frame);
-        int temp_cs = find_checksum(frame.seqnum, frame.acknum, frame.payload);
-        int acknowledgement_code = 1 - B_exp_seq_num;
-        if (temp_cs != frame.checksum || frame.seqnum != B_exp_seq_num)
+
+        if (PIGGYBACKING == 1)
         {
-            if (temp_cs != frame.checksum)
-                printf("\n-------Checksum doesn't match-----frame Corruption-------\n");
-            if (frame.seqnum != B_exp_seq_num)
-                printf("\n-------Sequence number doesn't match-------- Wanted: %d------Found: %d\n", B_exp_seq_num, frame.seqnum);
-            printf("\nB is sending NACK by alternating the acknowledgement number::::frame acknum: %d\n", acknowledgement_code);
-            give_acknowledgement_to_A(acknowledgement_code);
-            return;
+            if (B_outstanding_ack == 0)
+            {
+                B_outstanding_ack = 1;
+                int temp_cs = find_checksum(frame.seqnum, frame.acknum, frame.payload);
+                if (temp_cs != frame.checksum)
+                {
+                    printf("\n-------Checksum doesn't match-----frame Corruption-------\n");
+                    B_ack_code_piggy = 1 - B_exp_seq_num;
+                }
+                else if (B_exp_seq_num != frame.seqnum)
+                {
+                    printf("\n--------Sequence number doesn't match---------\n");
+                    B_ack_code_piggy = 1 - B_exp_seq_num;
+                }
+                else
+                {
+                    printf("\n--------Frame received------");
+                    B_ack_code_piggy = B_exp_seq_num;
+                }
+                printf("\nSent for piggy backing\n");
+            }
+            else
+            {
+                ack_non_piggy(frame);
+            }
         }
-        printf("\nB is sending proper acknowledgement to A and sending the frame to layer 3\n");
-        //print_frame(frame);
-        give_acknowledgement_to_A(B_exp_seq_num);
-        tolayer3(CALLING_ENTITY_B, frame.payload);
-        B_exp_seq_num = acknowledgement_code;
+        else
+        {
+            ack_non_piggy(frame);
+        }
     }
     else if (frame.type == ACK_FRAME)
     {
-        printf("\n\n----------- Inside B_input -----------\n");
         int temp_cs = find_checksum(frame.seqnum, frame.acknum, frame.payload);
         if (B_sequence_number != frame.acknum)
         {
@@ -242,7 +356,6 @@ void B_input(struct frm frame)
             return;
         }
         printf("\nB got proper acknowledgement:::::Acknum: %d::::: packet: %s\n", frame.acknum, B_frame.payload);
-        //print_frame(frame);
         printf("\nB is stopping timer and going back to non waiting state\n");
         stoptimer(CALLING_ENTITY_B);
         B_sequence_number = 1 - B_sequence_number;
@@ -257,7 +370,20 @@ void B_timerinterrupt(void)
     if (B_state == ACK_PENDING)
     {
         printf("\n------ State: ACK_PENDING ------- B is sending the last frame again to layer 1-----\n");
-        print_frame(B_frame);
+        if (PIGGYBACKING == 1)
+        {
+            if (B_outstanding_ack == 1)
+            {
+                B_frame.acknum = B_ack_code_piggy;
+                B_frame.type = DATA_WITH_PIGGY_ACK_FRAME;
+                if (B_exp_seq_num == B_ack_code_piggy)
+                {
+                    B_exp_seq_num = 1 - B_exp_seq_num;
+                }
+                B_outstanding_ack = 0;
+            }
+        }
+
         tolayer1(CALLING_ENTITY_B, B_frame);
         starttimer(CALLING_ENTITY_B, TIME_BEFORE_TIMER_INT);
     }
@@ -293,7 +419,6 @@ void give_acknowledgement_to_A(int acknowledgement_code)
     temp_frm.acknum = acknowledgement_code;
     temp_frm.checksum = find_checksum(temp_frm.seqnum, temp_frm.acknum, temp_frm.payload);
     temp_frm.type = ACK_FRAME;
-    //print_frame(temp_frm);
     tolayer1(CALLING_ENTITY_B, temp_frm);
 }
 
@@ -316,7 +441,6 @@ void give_acknowledgement_to_B(int acknowledgement_code)
     temp_frm.acknum = acknowledgement_code;
     temp_frm.checksum = find_checksum(temp_frm.seqnum, temp_frm.acknum, temp_frm.payload);
     temp_frm.type = ACK_FRAME;
-    //print_frame(temp_frm);
     tolayer1(CALLING_ENTITY_A, temp_frm);
 }
 
@@ -698,8 +822,6 @@ void tolayer1(int AorB, struct frm frame)
     /* make a copy of the frame student just gave me since he/she may decide */
     /* to do something with the frame after we return back to him/her */
     myfrmptr = (struct frm *)malloc(sizeof(struct frm));
-    //printf("---DEBUG------");
-    //print_frame(frame);
     myfrmptr->seqnum = frame.seqnum;
     myfrmptr->acknum = frame.acknum;
     myfrmptr->checksum = frame.checksum;
