@@ -1,0 +1,793 @@
+-----  Stop and Wait Network Simulator Version 1.1 -------- 
+
+Enter the number of packets to simulate: 10
+Enter  frame loss probability [enter 0.0 for no loss]:0.2
+Enter frame corruption probability [0.0 for no corruption]:0.3
+Enter average time between packets from sender's layer3 [ > 0.0]:80
+Enter TRACE:1
+
+----------- Initializing A -----------
+
+
+----------- Initializing B -----------
+
+
+----------- Inside B_output -----------
+
+B is in layer 3 state
+
+B is sending a frame to Layer1 and Waiting for acknowledgement
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 0
+Acknum: 0
+Checksum: 291
+Payload: aaa
+Type: 0
+
+A is sending proper acknowledgement to B and sending the frame to layer 3
+          TOLAYER1: frame being lost
+
+
+----------- Inside A_output -----------
+
+A is in layer 3 state
+
+A is sending a frame to Layer1 and Waiting for acknowledgement
+          TOLAYER1: frame being lost
+
+
+----------- Inside B_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- B is sending the last frame again to layer 1-----
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 0
+Acknum: 0
+Checksum: 291
+Payload: aaa
+Type: 0
+
+-------Sequence number doesn't match-------- Wanted: 1------Found: 0
+
+A is sending NACK by alternating the acknowledgement number::::frame acknum: 0
+          TOLAYER1: frame being lost
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 0
+Acknum: 32767
+Checksum: 33061
+Payload: bbb
+Type: 0
+
+--------Frame received------
+Sent for piggy backing
+
+
+----------- Inside B_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- B is sending the last frame again to layer 1-----
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 0
+Acknum: 0
+Checksum: 291
+Payload: aaa
+Type: 2
+
+A got proper acknowledgement:::::Acknum: 0::::: packet: bbb
+
+A is stopping timer and going back to non waiting state
+
+-------Sequence number doesn't match-------- Wanted: 1------Found: 0
+
+A is sending NACK by alternating the acknowledgement number::::frame acknum: 0
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: -1362910452
+Acknum: 0
+Checksum: -1362910452
+Payload: 
+Type: 1
+
+B got proper acknowledgement:::::Acknum: 0::::: packet: aaa
+
+B is stopping timer and going back to non waiting state
+
+
+----------- Inside A_output -----------
+
+A is in layer 3 state
+
+A is sending a frame to Layer1 and Waiting for acknowledgement
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: Zcc
+Type: 0
+
+-------Checksum doesn't match-----frame Corruption-------
+
+Sent for piggy backing
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 999999
+Checksum: 298
+Payload: ccc
+Type: 0
+
+-------Checksum doesn't match-----frame Corruption-------
+
+B is sending NACK by alternating the acknowledgement number::::frame acknum: 0
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: -1362910516
+Acknum: 0
+Checksum: -1362910516
+Payload: 
+Type: 1
+
+----------Expected Acknowledgement: 1---------Found: 0-----------
+
+
+----------- Inside A_output -----------
+
+A is waiting for acknowledgement of ccc, dropping ddd
+
+
+----------- Inside A_output -----------
+
+A is waiting for acknowledgement of ccc, dropping eee
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 999999
+Checksum: 298
+Payload: ccc
+Type: 0
+
+-------Checksum doesn't match-----frame Corruption-------
+
+Sent for piggy backing
+
+
+----------- Inside A_output -----------
+
+A is waiting for acknowledgement of ccc, dropping fff
+
+
+----------- Inside B_output -----------
+
+B is in layer 3 state
+
+B sending Piggyback ack
+
+B is sending a frame to Layer1 and Waiting for acknowledgement
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside A_output -----------
+
+A is waiting for acknowledgement of ccc, dropping hhh
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 1
+Checksum: 22328
+Payload: Zgg
+Type: 2
+
+-------Checksum doesn't match-----frame Corruption-------
+
+A is sending proper acknowledgement to B and sending the frame to layer 3
+          TOLAYER1: frame being lost
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+          TOLAYER1: frame being lost
+
+
+----------- Inside B_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- B is sending the last frame again to layer 1-----
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 1
+Checksum: 22328
+Payload: Zgg
+Type: 2
+
+-------Checksum doesn't match-----frame Corruption-------
+
+-------Sequence number doesn't match-------- Wanted: 0------Found: 1
+
+A is sending NACK by alternating the acknowledgement number::::frame acknum: 1
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: -1362910452
+Acknum: 1
+Checksum: -1362910451
+Payload: 
+Type: 1
+
+B got proper acknowledgement:::::Acknum: 1::::: packet: ggg
+
+B is stopping timer and going back to non waiting state
+
+
+----------- Inside B_output -----------
+
+B is in layer 3 state
+
+B is sending a frame to Layer1 and Waiting for acknowledgement
+          TOLAYER1: frame being lost
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: ccc
+Type: 0
+
+--------Frame received------
+Sent for piggy backing
+
+
+----------- Inside B_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- B is sending the last frame again to layer 1-----
+          TOLAYER1: frame being lost
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+          TOLAYER1: frame being lost
+
+
+----------- Inside B_output -----------
+
+B is waiting for acknowledgement of iii, dropping jjj
+
+
+----------- Inside B_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- B is sending the last frame again to layer 1-----
+          TOLAYER1: frame being lost
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+          TOLAYER1: frame being lost
+
+
+----------- Inside B_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- B is sending the last frame again to layer 1-----
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 0
+Acknum: 1
+Checksum: 315
+Payload: Zii
+Type: 2
+
+-------Checksum doesn't match-----frame Corruption-------
+
+A is sending proper acknowledgement to B and sending the frame to layer 3
+          TOLAYER1: frame being lost
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: ccc
+Type: 0
+
+--------Sequence number doesn't match---------
+
+Sent for piggy backing
+
+
+----------- Inside B_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- B is sending the last frame again to layer 1-----
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 0
+Acknum: 1
+Checksum: 315
+Payload: iii
+Type: 2
+
+-------Checksum doesn't match-----frame Corruption-------
+
+-------Sequence number doesn't match-------- Wanted: 1------Found: 0
+
+A is sending NACK by alternating the acknowledgement number::::frame acknum: 0
+          TOLAYER1: frame being lost
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: ccc
+Type: 0
+
+--------Sequence number doesn't match---------
+
+Sent for piggy backing
+
+
+----------- Inside B_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- B is sending the last frame again to layer 1-----
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 999999
+Acknum: 1
+Checksum: 315
+Payload: iii
+Type: 2
+
+-------Checksum doesn't match-----frame Corruption-------
+
+-------Sequence number doesn't match-------- Wanted: 1------Found: 999999
+
+A is sending NACK by alternating the acknowledgement number::::frame acknum: 0
+          TOLAYER1: frame being lost
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: ccc
+Type: 0
+
+--------Sequence number doesn't match---------
+
+Sent for piggy backing
+
+
+----------- Inside B_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- B is sending the last frame again to layer 1-----
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 0
+Acknum: 1
+Checksum: 315
+Payload: iii
+Type: 2
+
+-------Checksum doesn't match-----frame Corruption-------
+
+-------Sequence number doesn't match-------- Wanted: 1------Found: 0
+
+A is sending NACK by alternating the acknowledgement number::::frame acknum: 0
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: -1362910452
+Acknum: 0
+Checksum: -1362910452
+Payload: 
+Type: 1
+
+B got proper acknowledgement:::::Acknum: 0::::: packet: iii
+
+B is stopping timer and going back to non waiting state
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: Zcc
+Type: 0
+
+-------Checksum doesn't match-----frame Corruption-------
+
+Sent for piggy backing
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: ccc
+Type: 0
+
+-------Sequence number doesn't match-------- Wanted: 0------Found: 1
+
+B is sending NACK by alternating the acknowledgement number::::frame acknum: 1
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: -1362910516
+Acknum: 999999
+Checksum: -1362910514
+Payload: 
+Type: 1
+
+----------Expected Acknowledgement: 1---------Found: 999999-----------
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: Zcc
+Type: 0
+
+-------Checksum doesn't match-----frame Corruption-------
+
+Sent for piggy backing
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: Zcc
+Type: 0
+
+-------Checksum doesn't match-----frame Corruption-------
+
+-------Sequence number doesn't match-------- Wanted: 0------Found: 1
+
+B is sending NACK by alternating the acknowledgement number::::frame acknum: 1
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: -1362910516
+Acknum: 1
+Checksum: -1362910515
+Payload: Z
+Type: 1
+
+-------Checksum doesn't match-----frame Corruption-------
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: Zcc
+Type: 0
+
+-------Checksum doesn't match-----frame Corruption-------
+
+Sent for piggy backing
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: ccc
+Type: 0
+
+-------Sequence number doesn't match-------- Wanted: 0------Found: 1
+
+B is sending NACK by alternating the acknowledgement number::::frame acknum: 1
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: -1362910516
+Acknum: 1
+Checksum: -1362910514
+Payload: Z
+Type: 1
+
+-------Checksum doesn't match-----frame Corruption-------
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: Zcc
+Type: 0
+
+-------Checksum doesn't match-----frame Corruption-------
+
+Sent for piggy backing
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: Zcc
+Type: 0
+
+-------Checksum doesn't match-----frame Corruption-------
+
+-------Sequence number doesn't match-------- Wanted: 0------Found: 1
+
+B is sending NACK by alternating the acknowledgement number::::frame acknum: 1
+          TOLAYER1: frame being corrupted
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: -1362910516
+Acknum: 999999
+Checksum: -1362910515
+Payload: 
+Type: 1
+
+----------Expected Acknowledgement: 1---------Found: 999999-----------
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: ccc
+Type: 0
+
+--------Sequence number doesn't match---------
+
+Sent for piggy backing
+
+
+----------- Inside A_timerinterrupt -----------
+
+------ State: ACK_PENDING ------- A is sending the last frame again to layer 1-----
+
+
+----------- Inside B_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: 1
+Acknum: 0
+Checksum: 298
+Payload: ccc
+Type: 0
+
+-------Sequence number doesn't match-------- Wanted: 0------Found: 1
+
+B is sending NACK by alternating the acknowledgement number::::frame acknum: 1
+
+
+----------- Inside A_input -----------
+
+
+::::::: frame ::::::::
+Seqnum: -1362910516
+Acknum: 1
+Checksum: -1362910514
+Payload: 
+Type: 1
+
+A got proper acknowledgement:::::Acknum: 1::::: packet: ccc
+
+A is stopping timer and going back to non waiting state
+ Simulator terminated at time 2272.906494
+ after sending 10 pkts from layer3
