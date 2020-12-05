@@ -22,13 +22,9 @@ B is sending a frame to Layer1 and Waiting for acknowledgement
 ----------- Inside A_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 0
-Acknum: 0
-Checksum: 291
+Frame(type: 0)
 Payload: aaa
-Type: 0
-
+Seqnum: 0       Acknum: 0       Checksum: 291
 A is sending proper acknowledgement to B and sending the frame to layer 3
           TOLAYER1: frame being lost
 
@@ -42,13 +38,9 @@ A is sending proper acknowledgement to B and sending the frame to layer 3
 ----------- Inside A_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 0
-Acknum: 0
-Checksum: 291
+Frame(type: 0)
 Payload: Zaa
-Type: 0
-
+Seqnum: 0       Acknum: 0       Checksum: 291
 -------Checksum doesn't match-----frame Corruption-------
 
 -------Sequence number doesn't match-------- Wanted: 1------Found: 0
@@ -60,13 +52,9 @@ A is sending NACK by alternating the acknowledgement number::::frame acknum: 0
 ----------- Inside B_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 691284476
-Acknum: 0
-Checksum: 691284476
+Frame(type: 1)
 Payload: Z
-Type: 1
-
+Seqnum: 945853388       Acknum: 0       Checksum: 945853388
 -------Checksum doesn't match-----frame Corruption-------
 
 
@@ -84,13 +72,9 @@ Type: 1
 ----------- Inside A_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 0
-Acknum: 0
-Checksum: 291
+Frame(type: 0)
 Payload: aaa
-Type: 0
-
+Seqnum: 0       Acknum: 0       Checksum: 291
 -------Sequence number doesn't match-------- Wanted: 1------Found: 0
 
 A is sending NACK by alternating the acknowledgement number::::frame acknum: 0
@@ -99,13 +83,9 @@ A is sending NACK by alternating the acknowledgement number::::frame acknum: 0
 ----------- Inside B_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 691284476
-Acknum: 0
-Checksum: 691284476
+Frame(type: 1)
 Payload: 
-Type: 1
-
+Seqnum: 945853388       Acknum: 0       Checksum: 945853388
 B got proper acknowledgement:::::Acknum: 0::::: packet: aaa
 
 B is stopping timer and going back to non waiting state
@@ -115,6 +95,10 @@ B is stopping timer and going back to non waiting state
 
 A is in layer 3 state
 
+
+Frame(type: 0)
+Payload: bbb
+Seqnum: 0       Acknum: 0       Checksum: 294
 A is sending a frame to Layer1 and Waiting for acknowledgement
           TOLAYER1: frame being lost
 
@@ -128,13 +112,9 @@ A is sending a frame to Layer1 and Waiting for acknowledgement
 ----------- Inside B_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 0
-Acknum: 0
-Checksum: 294
+Frame(type: 0)
 Payload: Zbb
-Type: 0
-
+Seqnum: 0       Acknum: 0       Checksum: 294
 -------Checksum doesn't match-----frame Corruption-------
 
 B is sending NACK by alternating the acknowledgement number::::frame acknum: 1
@@ -144,13 +124,9 @@ B is sending NACK by alternating the acknowledgement number::::frame acknum: 1
 ----------- Inside A_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 691284476
-Acknum: 999999
-Checksum: 691284477
+Frame(type: 1)
 Payload: 
-Type: 1
-
+Seqnum: 945853388       Acknum: 999999  Checksum: 945853389
 ----------Expected Acknowledgement: 0---------Found: 999999-----------
 
 
@@ -162,13 +138,9 @@ Type: 1
 ----------- Inside B_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 0
-Acknum: 0
-Checksum: 294
+Frame(type: 0)
 Payload: bbb
-Type: 0
-
+Seqnum: 0       Acknum: 0       Checksum: 294
 B is sending proper acknowledgement to A and sending the frame to layer 3
           TOLAYER1: frame being lost
 
@@ -182,13 +154,9 @@ B is sending proper acknowledgement to A and sending the frame to layer 3
 ----------- Inside B_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 0
-Acknum: 0
-Checksum: 294
+Frame(type: 0)
 Payload: Zbb
-Type: 0
-
+Seqnum: 0       Acknum: 0       Checksum: 294
 -------Checksum doesn't match-----frame Corruption-------
 
 -------Sequence number doesn't match-------- Wanted: 1------Found: 0
@@ -199,13 +167,9 @@ B is sending NACK by alternating the acknowledgement number::::frame acknum: 0
 ----------- Inside A_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 691284476
-Acknum: 0
-Checksum: 691284476
+Frame(type: 1)
 Payload: 
-Type: 1
-
+Seqnum: 945853388       Acknum: 0       Checksum: 945853388
 A got proper acknowledgement:::::Acknum: 0::::: packet: bbb
 
 A is stopping timer and going back to non waiting state
@@ -233,13 +197,9 @@ B is waiting for acknowledgement of ccc, dropping ddd
 ----------- Inside A_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 999999
-Acknum: 0
-Checksum: 298
+Frame(type: 0)
 Payload: ccc
-Type: 0
-
+Seqnum: 999999  Acknum: 0       Checksum: 298
 -------Checksum doesn't match-----frame Corruption-------
 
 -------Sequence number doesn't match-------- Wanted: 1------Found: 999999
@@ -251,13 +211,9 @@ A is sending NACK by alternating the acknowledgement number::::frame acknum: 0
 ----------- Inside B_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 691284476
-Acknum: 0
-Checksum: 691284476
+Frame(type: 1)
 Payload: Z
-Type: 1
-
+Seqnum: 945853388       Acknum: 0       Checksum: 945853388
 ----------Expected Acknowledgement: 1---------Found: 0-----------
 
 
@@ -269,26 +225,18 @@ Type: 1
 ----------- Inside A_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 1
-Acknum: 0
-Checksum: 298
+Frame(type: 0)
 Payload: ccc
-Type: 0
-
+Seqnum: 1       Acknum: 0       Checksum: 298
 A is sending proper acknowledgement to B and sending the frame to layer 3
 
 
 ----------- Inside B_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 691284476
-Acknum: 1
-Checksum: 691284477
+Frame(type: 1)
 Payload: 
-Type: 1
-
+Seqnum: 945853388       Acknum: 1       Checksum: 945853389
 B got proper acknowledgement:::::Acknum: 1::::: packet: ccc
 
 B is stopping timer and going back to non waiting state
@@ -298,6 +246,10 @@ B is stopping timer and going back to non waiting state
 
 A is in layer 3 state
 
+
+Frame(type: 0)
+Payload: eee
+Seqnum: 1       Acknum: 0       Checksum: 304
 A is sending a frame to Layer1 and Waiting for acknowledgement
           TOLAYER1: frame being corrupted
 
@@ -305,13 +257,9 @@ A is sending a frame to Layer1 and Waiting for acknowledgement
 ----------- Inside B_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 1
-Acknum: 0
-Checksum: 304
+Frame(type: 0)
 Payload: Zee
-Type: 0
-
+Seqnum: 1       Acknum: 0       Checksum: 304
 -------Checksum doesn't match-----frame Corruption-------
 
 B is sending NACK by alternating the acknowledgement number::::frame acknum: 0
@@ -321,13 +269,9 @@ B is sending NACK by alternating the acknowledgement number::::frame acknum: 0
 ----------- Inside A_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 691284476
-Acknum: 0
-Checksum: 691284476
+Frame(type: 1)
 Payload: Z
-Type: 1
-
+Seqnum: 945853388       Acknum: 0       Checksum: 945853388
 ----------Expected Acknowledgement: 1---------Found: 0-----------
 
 
@@ -352,13 +296,9 @@ Type: 1
 ----------- Inside B_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 1
-Acknum: 0
-Checksum: 304
+Frame(type: 0)
 Payload: Zee
-Type: 0
-
+Seqnum: 1       Acknum: 0       Checksum: 304
 -------Checksum doesn't match-----frame Corruption-------
 
 B is sending NACK by alternating the acknowledgement number::::frame acknum: 0
@@ -373,28 +313,20 @@ B is sending NACK by alternating the acknowledgement number::::frame acknum: 0
 ----------- Inside B_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 1
-Acknum: 0
-Checksum: 304
+Frame(type: 0)
 Payload: eee
-Type: 0
-
+Seqnum: 1       Acknum: 0       Checksum: 304
 B is sending proper acknowledgement to A and sending the frame to layer 3
 
 
 ----------- Inside A_input -----------
 
 
-::::::: frame ::::::::
-Seqnum: 691284476
-Acknum: 1
-Checksum: 691284477
+Frame(type: 1)
 Payload: 
-Type: 1
-
+Seqnum: 945853388       Acknum: 1       Checksum: 945853389
 A got proper acknowledgement:::::Acknum: 1::::: packet: eee
 
 A is stopping timer and going back to non waiting state
- Simulator terminated at time 2497.488037
+ Simulator terminated at time 2537.488037
  after sending 5 pkts from layer3

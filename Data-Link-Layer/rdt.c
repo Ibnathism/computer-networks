@@ -77,7 +77,7 @@ struct frm get_frame_for_B(struct pkt packet);
 int find_checksum(int seqnum, int acknum, char *payload);
 void give_acknowledgement_to_A(int acknowledgement_code);
 void give_acknowledgement_to_B(int acknowledgement_code);
-void print_frame(struct frm frame);
+void show_frm(struct frm frame);
 
 /* called from layer 5, passed the data to be sent to other side */
 void A_output(struct pkt packet)
@@ -88,6 +88,7 @@ void A_output(struct pkt packet)
         printf("\nA is in layer 3 state\n");
         A_state = ACK_PENDING;
         A_frame = get_frame_for_A(packet);
+        show_frm(A_frame);
         printf("\nA is sending a frame to Layer1 and Waiting for acknowledgement\n");
         tolayer1(CALLING_ENTITY_A, A_frame);
         starttimer(CALLING_ENTITY_A, TIME_BEFORE_TIMER_INT);
@@ -127,6 +128,7 @@ void B_output(struct pkt packet)
                     B_exp_seq_num = 1 - B_exp_seq_num;
                 }
                 B_frame.type = DATA_WITH_PIGGY_ACK_FRAME;
+                show_frm(B_frame);
                 printf("\nB sending Piggyback ack\n");
                 printf("\nB is sending a frame to Layer1 and Waiting for acknowledgement\n");
                 tolayer1(CALLING_ENTITY_B, B_frame);
@@ -196,7 +198,7 @@ void handle_data(struct frm frame)
 void A_input(struct frm frame)
 {
     printf("\n\n----------- Inside A_input -----------\n");
-    print_frame(frame);
+    show_frm(frame);
     if (frame.type == ACK_FRAME)
     {
         handle_ack(frame);
@@ -300,7 +302,7 @@ void ack_non_piggy(struct frm frame)
 void B_input(struct frm frame)
 {
     printf("\n\n----------- Inside B_input -----------\n");
-    print_frame(frame);
+    show_frm(frame);
     if (frame.type == DATA_FRAME)
     {
 
@@ -457,10 +459,13 @@ struct frm get_frame_for_B(struct pkt packet)
     return temp_frm;
 }
 
-void print_frame(struct frm frame)
+void show_frm(struct frm frame)
 {
-    printf("\n\n::::::: frame ::::::::\n");
-    printf("Seqnum: %d\nAcknum: %d\nChecksum: %d\nPayload: %s\nType: %d\n", frame.seqnum, frame.acknum, frame.checksum, frame.payload, frame.type);
+    printf("\n\nFrame(type: %d)\n", frame.type);
+    printf("Payload: %s\n", frame.payload);
+    printf("Seqnum: %d\t", frame.seqnum);
+    printf("Acknum: %d\t", frame.acknum);
+    printf("Checksum: %d\t", frame.checksum);
 }
 
 /*****************************************************************
