@@ -81,15 +81,24 @@ $ns node-config -adhocRouting $val(rp) \
                 -movementTrace OFF
 
 # create nodes
+set row 0
+set col 0
+
 for {set i 0} {$i < $val(nn) } {incr i} {
     set node($i) [$ns node]
     $node($i) random-motion 0       ;# disable random motion
 
-    $node($i) set X_ [expr (500 * $i) / $val(nn)]
-    $node($i) set Y_ [expr (500 * $i) / $val(nn)]
+    $node($i) set X_ [expr (5000 * $col) / $val(nn)]
+    $node($i) set Y_ [expr ($row) / $val(nn)]
     $node($i) set Z_ 0
 
     $ns initial_node_pos $node($i) 20
+    
+    set col [expr $col + 1]
+    if {$i % 10 == 9} {
+        set row [expr $row + 5000]
+        set col 0
+    }
 } 
 
 
