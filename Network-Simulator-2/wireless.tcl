@@ -14,20 +14,22 @@ set val(ifqlen)       50                                ;# max packet in ifq
 set val(netif)        Phy/WirelessPhy/802_15_4         ;# network interface type
 set val(mac)          Mac/802_15_4                     ;# MAC type
 set val(rp)           DSDV                              ;# ad-hoc routing protocol 
-set val(nn)           40                                ;# number of mobilenodes
+set val(nn)           40                               ;# number of mobilenodes
 # =======================================================================
 
 # trace file
 set trace_file [open trace.tr w]
 $ns trace-all $trace_file
 
+set length 500
+set width 500
 # nam file
 set nam_file [open animation.nam w]
-$ns namtrace-all-wireless $nam_file 500 500
+$ns namtrace-all-wireless $nam_file $length $width
 
 # topology: to keep track of node movements
 set topo [new Topography]
-$topo load_flatgrid 500 500 ;# 500m x 500m area
+$topo load_flatgrid $length $width ;# 500m x 500m area
 
 
 # general operation director for mobilenodes
@@ -106,11 +108,18 @@ for {set i 0} {$i < $val(nn) } {incr i} {
 
 
 # Traffic
-set val(nf)         20                ;# number of flows
+set val(nf)         50                ;# number of flows
+set min 0
+set max [expr $val(nn) - 1]
 
 for {set i 0} {$i < $val(nf)} {incr i} {
-    set src $i
-    set dest [expr $i + 1]
+    set src [expr {int(rand()*($max-$min+1)+$min)}]
+    
+    set dest [expr {int(rand()*($max-$min+1)+$min)}]
+
+    while {$src == $dest} {
+        set dest [expr {int(rand()*($max-$min+1)+$min)}]
+    }
 
     # Traffic config
     # create agent
