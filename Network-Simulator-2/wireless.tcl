@@ -5,16 +5,16 @@ set ns [new Simulator]
 # ======================================================================
 # Define options
 
-set val(chan)         Channel/WirelessChannel  ;# channel type
-set val(prop)         Propagation/TwoRayGround ;# radio-propagation model
-set val(ant)          Antenna/OmniAntenna      ;# Antenna type
-set val(ll)           LL                       ;# Link layer type
-set val(ifq)          Queue/DropTail/PriQueue  ;# Interface queue type
-set val(ifqlen)       50                       ;# max packet in ifq
-set val(netif)        Phy/WirelessPhy          ;# network interface type
-set val(mac)          Mac/802_11               ;# MAC type
-set val(rp)           DSDV                     ;# ad-hoc routing protocol 
-set val(nn)           20                       ;# number of mobilenodes
+set val(chan)         Channel/WirelessChannel           ;# channel type
+set val(prop)         Propagation/TwoRayGround          ;# radio-propagation model
+set val(ant)          Antenna/OmniAntenna               ;# Antenna type
+set val(ll)           LL                                ;# Link layer type
+set val(ifq)          Queue/DropTail/PriQueue           ;# Interface queue type
+set val(ifqlen)       50                                ;# max packet in ifq
+set val(netif)        Phy/WirelessPhy/802_15_4         ;# network interface type
+set val(mac)          Mac/802_15_4                     ;# MAC type
+set val(rp)           DSDV                              ;# ad-hoc routing protocol 
+set val(nn)           40                                ;# number of mobilenodes
 # =======================================================================
 
 # trace file
@@ -69,6 +69,12 @@ $ns node-config -adhocRouting $val(rp) \
                 -phyType $val(netif) \
                 -topoInstance $topo \
                 -channelType $val(chan) \
+                -energyModel    "EnergyModel" \
+                -initialEnergy  3.0 \
+                -rxPower        0.9 \
+                -txPower        0.5 \
+                -idlePower 0.45 \
+                -sleepPower 0.05 \
                 -agentTrace ON \
                 -routerTrace ON \
                 -macTrace OFF \
@@ -91,15 +97,15 @@ for {set i 0} {$i < $val(nn) } {incr i} {
 
 
 # Traffic
-set val(nf)         10                ;# number of flows
+set val(nf)         20                ;# number of flows
 
 for {set i 0} {$i < $val(nf)} {incr i} {
     set src $i
-    set dest [expr $i + 10]
+    set dest [expr $i + 1]
 
     # Traffic config
     # create agent
-    set tcp [new Agent/TCP]
+    set tcp [new Agent/TCP/Reno]
     set tcp_sink [new Agent/TCPSink]
     # attach to nodes
     $ns attach-agent $node($src) $tcp
@@ -110,6 +116,7 @@ for {set i 0} {$i < $val(nf)} {incr i} {
 
     # Traffic generator
     set ftp [new Application/FTP]
+    
     # attach to agent
     $ftp attach-agent $tcp
     
